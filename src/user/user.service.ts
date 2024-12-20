@@ -1,10 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { UserRepository } from './user.repository';
+import { UserRepository } from '../repositories/user.repository';
 import { CreateUserRequest } from './dto/create-user-request.dto';
 import { ValidationService } from 'src/validation/validation.service';
-import { CustomResponse } from 'src/http-exception/dto/custom-response.dto';
-import * as bcrypt from 'bcrypt';
-
+import { CustomResponse } from 'src/dto/custom-response.dto';
 @Injectable()
 export class UserService {
   constructor(
@@ -19,21 +17,10 @@ export class UserService {
   }
 
   async getUsers() {
-    const data = await this.repository.findAll();
+    const data = await this.repository.findAll({
+      roles: true,
+    });
     return CustomResponse.success('Data Fetched!', data);
-  }
-
-  async login(data: CreateUserRequest) {
-    const user = await this.repository.authenticateEmail(data.email);
-    if (!user) {
-      return CustomResponse.error('User not found', null, 404);
-    }
-
-    const passwordMatch = await bcrypt.compare(data.password, user.password);
-    if (!passwordMatch) {
-      return CustomResponse.error('Invalid password', null, 400);
-    }
-    return CustomResponse.success('Login successful', user, 200);
   }
 
   async getUserById(id: string) {

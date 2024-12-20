@@ -13,7 +13,7 @@ import { CreateUserRequest } from './dto/create-user-request.dto';
 @Controller('user')
 export class UserController {
   constructor(private userService: UserService) {}
-  @Get('/')
+  @Get()
   getUsers() {
     return this.userService.getUsers();
   }
@@ -21,12 +21,6 @@ export class UserController {
   @Post('register')
   async register(@Body() data: CreateUserRequest, @Res() res) {
     const response = await this.userService.createUser(data);
-    return res.status(response.statusCode).json(response);
-  }
-
-  @Post('login')
-  async login(@Body() data: CreateUserRequest, @Res() res) {
-    const response = await this.userService.login(data);
     return res.status(response.statusCode).json(response);
   }
 

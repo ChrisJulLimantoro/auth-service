@@ -18,5 +18,57 @@ model User {
   email   String   @unique
   password String
 
+  roles    UserRole[]
   @@map("users")
+}
+
+model Role {
+  id      String   @id @db.Uuid @default(uuid())
+  name     String
+
+  users    UserRole[]
+  features FeatureRole[]
+
+  @@map("roles")
+}
+
+model UserRole {
+  id     String   @id @db.Uuid @default(uuid())
+  user_id String  @db.Uuid
+  role_id String  @db.Uuid
+  company_id String @db.Uuid
+  user   User     @relation(fields: [user_id], references: [id])
+  role   Role     @relation(fields: [role_id], references: [id])
+  company Company @relation(fields: [company_id], references: [id])
+
+  @@map("user_roles")
+}
+
+model Company {
+  id       String         @id @db.Uuid @default(uuid())
+  name     String
+  userRoles    UserRole[]
+
+  @@map("companies")
+}
+
+model Feature {
+  id     String   @id @db.Uuid @default(uuid())
+  name    String
+  routes     String
+
+  roles   FeatureRole[]
+
+  @@map("features")
+}
+
+model FeatureRole {
+  id         String   @id @db.Uuid @default(uuid())
+  feature_id String @db.Uuid
+  role_id    String @db.Uuid
+
+  feature    Feature  @relation(fields: [feature_id], references: [id])
+  role       Role     @relation(fields: [role_id], references: [id])
+
+  @@map("feature_roles")
 }
