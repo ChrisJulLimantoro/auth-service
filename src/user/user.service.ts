@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { UserRepository } from '../repositories/user.repository';
 import { CreateUserRequest } from './dto/create-user-request.dto';
 import { ValidationService } from 'src/validation/validation.service';
-import { CustomResponse } from 'src/dto/custom-response.dto';
+import { CustomResponse } from 'src/exception/dto/custom-response.dto';
 @Injectable()
 export class UserService {
   constructor(

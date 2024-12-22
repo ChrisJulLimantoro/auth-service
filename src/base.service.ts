@@ -1,18 +1,19 @@
 import { Injectable } from '@nestjs/common';
-import { CustomResponse } from './dto/custom-response.dto';
+import { CustomResponse } from './exception/dto/custom-response.dto';
 import { ValidationService } from './validation/validation.service';
 
 export abstract class BaseService {
   // Abstract repository, which will be defined by the child service
   protected abstract repository: any;
   protected abstract createSchema: any;
+  protected abstract updateSchema: any;
 
   constructor(protected readonly validation: ValidationService) {}
 
   // Create
   async create(data: any): Promise<CustomResponse> {
-    this.validation.validate(data, this.createSchema);
-    const newData = await this.repository.create(data);
+    const validatedData = this.validation.validate(data, this.createSchema);
+    const newData = await this.repository.create(validatedData);
     return CustomResponse.success('New Data Created!', newData, 201);
   }
 
@@ -37,7 +38,7 @@ export abstract class BaseService {
     if (!oldData) {
       return CustomResponse.error('Data not found', null, 404);
     }
-    this.validation.validate(data, data.schema());
+    this.validation.validate(data, this.updateSchema);
     const newData = await this.repository.update(id, data);
     return CustomResponse.success('Data Updated!', newData, 200);
   }

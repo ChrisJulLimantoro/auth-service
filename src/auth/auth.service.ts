@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { LoginRequest } from './dto/login-request.dto';
 import { UserRepository } from 'src/repositories/user.repository';
-import { CustomResponse } from 'src/dto/custom-response.dto';
+import { CustomResponse } from 'src/exception/dto/custom-response.dto';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
