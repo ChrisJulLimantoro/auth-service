@@ -37,9 +37,11 @@ model UserRole {
   user_id String  @db.Uuid
   role_id String  @db.Uuid
   company_id String @db.Uuid
+  store_id String @db.Uuid
   user   User     @relation(fields: [user_id], references: [id])
   role   Role     @relation(fields: [role_id], references: [id])
   company Company @relation(fields: [company_id], references: [id])
+  store Store @relation(fields: [store_id], references: [id])
 
   @@map("user_roles")
 }
@@ -47,15 +49,29 @@ model UserRole {
 model Company {
   id       String         @id @db.Uuid @default(uuid())
   name     String
+
   userRoles    UserRole[]
+  stores Store[]
 
   @@map("companies")
+}
+
+model Store {
+  id      String         @id @db.Uuid @default(uuid())
+  name     String
+  company_id String @db.Uuid
+
+  userRoles    UserRole[]
+  company Company @relation(fields: [company_id], references: [id])
+
+  @@map("stores")
 }
 
 model Feature {
   id     String   @id @db.Uuid @default(uuid())
   name    String
-  routes     String
+  description String
+  service String
 
   roles   FeatureRole[]
 
