@@ -6,7 +6,10 @@ import { BaseRepository } from 'src/repositories/base.repository';
 @Injectable()
 export class UserRepository extends BaseRepository<any> {
   constructor(prisma: PrismaService) {
-    super(prisma, 'user'); // 'user' is the Prisma model name
+    const relations = {
+      roles: { include: { role: true } },
+    };
+    super(prisma, 'user', relations); // 'user' is the Prisma model name
   }
 
   async createUser(data: any) {

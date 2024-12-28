@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { BaseService } from 'src/base.service';
+import { CustomResponse } from 'src/exception/dto/custom-response.dto';
 import { FeatureRepository } from 'src/repositories/feature.respository';
 import { ValidationService } from 'src/validation/validation.service';
 
@@ -30,5 +31,23 @@ export class FeatureService extends BaseService {
       }
     });
     return this.featureRepository.findAll();
+  }
+
+  async assignFeature(body: any) {
+    const { role_id, feature_id } = body;
+    const created = await this.featureRepository.assignFeatureToRole(
+      role_id,
+      feature_id,
+    );
+    return CustomResponse.success('Feature assigned to role', created, 200);
+  }
+
+  async unassignFeature(body: any) {
+    const { role_id, feature_id } = body;
+    const deleted = await this.featureRepository.unassignFeatureToRole(
+      role_id,
+      feature_id,
+    );
+    return CustomResponse.success('Feature unassigned to role', deleted, 200);
   }
 }

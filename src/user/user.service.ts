@@ -17,9 +17,7 @@ export class UserService {
   }
 
   async getUsers() {
-    const data = await this.repository.findAll({
-      roles: true,
-    });
+    const data = await this.repository.findAll();
     return CustomResponse.success('Data Fetched!', data);
   }
 

@@ -1,7 +1,9 @@
 import { Controller } from '@nestjs/common';
-import { MessagePattern } from '@nestjs/microservices';
+import { MessagePattern, Payload } from '@nestjs/microservices';
 import { MessagePatternDiscoveryService } from 'src/discovery/message-pattern-discovery.service';
 import { FeatureService } from './feature.service';
+import { Describe } from 'src/decorator/describe.decorator';
+import { Exempt } from 'src/decorator/exempt.decorator';
 
 @Controller('feature')
 export class FeatureController {
@@ -11,6 +13,7 @@ export class FeatureController {
   ) {}
 
   @MessagePattern({ cmd: 'sync_feature' })
+  @Exempt()
   syncFeature() {
     const patterns = [];
     // From Auth Services
@@ -19,7 +22,20 @@ export class FeatureController {
       pattern.service = 'auth';
       patterns.push(pattern);
     });
-    console.log(patterns);
     return this.service.syncFeature(patterns);
+  }
+
+  @MessagePattern({ cmd: 'post:assign-feature' })
+  @Describe('Assign feature to role')
+  assignFeature(@Payload() data: any) {
+    const body = data.body;
+    return this.service.assignFeature(body);
+  }
+
+  @MessagePattern({ cmd: 'post:unassign-feature' })
+  @Describe('Unassign feature to role')
+  unassignFeature(@Payload() data: any) {
+    const body = data.body;
+    return this.service.unassignFeature(body);
   }
 }

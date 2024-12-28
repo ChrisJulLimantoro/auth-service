@@ -43,6 +43,7 @@ model UserRole {
   company Company @relation(fields: [company_id], references: [id])
   store Store @relation(fields: [store_id], references: [id])
 
+  @@unique([user_id, role_id, company_id, store_id])
   @@map("user_roles")
 }
 
@@ -85,6 +86,7 @@ model FeatureRole {
 
   feature    Feature  @relation(fields: [feature_id], references: [id])
   role       Role     @relation(fields: [role_id], references: [id])
+  @@unique([feature_id, role_id])
 
   @@map("feature_roles")
 }
