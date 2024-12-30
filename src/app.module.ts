@@ -8,6 +8,9 @@ import { MessagePatternDiscoveryService } from './discovery/message-pattern-disc
 import { DiscoveryModule } from '@nestjs/core';
 import { AppController } from './app.controller';
 import { FeatureModule } from './feature/feature.module';
+import { StoreModule } from './store/store.module';
+import { CompanyModule } from './company/company.module';
+import { SharedModule } from './shared.module';
 
 @Module({
   imports: [
@@ -18,6 +21,9 @@ import { FeatureModule } from './feature/feature.module';
     RoleModule,
     DiscoveryModule,
     FeatureModule,
+    StoreModule,
+    CompanyModule,
+    SharedModule,
   ],
   controllers: [AppController],
   providers: [MessagePatternDiscoveryService],

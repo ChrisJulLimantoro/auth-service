@@ -1,5 +1,5 @@
-import { Controller } from '@nestjs/common';
-import { MessagePattern, Payload } from '@nestjs/microservices';
+import { Controller, Inject } from '@nestjs/common';
+import { ClientProxy, MessagePattern, Payload } from '@nestjs/microservices';
 import { MessagePatternDiscoveryService } from 'src/discovery/message-pattern-discovery.service';
 import { FeatureService } from './feature.service';
 import { Describe } from 'src/decorator/describe.decorator';
@@ -10,19 +10,31 @@ export class FeatureController {
   constructor(
     private readonly discovery: MessagePatternDiscoveryService,
     private readonly service: FeatureService,
+    @Inject('MASTER') private readonly masterClient: ClientProxy,
   ) {}
 
   @MessagePattern({ cmd: 'sync_feature' })
   @Exempt()
-  syncFeature() {
+  async syncFeature() {
     const patterns = [];
     // From Auth Services
-    const authPatterns = this.discovery.getMessagePatterns();
+    const authPatterns = await this.discovery.getMessagePatterns();
     authPatterns.map((pattern) => {
       pattern.service = 'auth';
       patterns.push(pattern);
     });
-    return this.service.syncFeature(patterns);
+    // From Master Service
+    const masterResponse = await this.masterClient
+      .send({ cmd: 'get_routes' }, {})
+      .toPromise();
+    const masterPatterns = masterResponse.data;
+    masterPatterns.map((pattern) => {
+      pattern.service = 'master';
+      patterns.push(pattern);
+    });
+    const response = await this.service.syncFeature(patterns);
+    console.log(response.data);
+    return response;
   }
 
   @MessagePattern({ cmd: 'post:assign-feature' })

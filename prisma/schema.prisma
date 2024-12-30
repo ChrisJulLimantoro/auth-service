@@ -19,6 +19,7 @@ model User {
   password String
 
   roles    UserRole[]
+  companies Company[]
   @@map("users")
 }
 
@@ -50,9 +51,11 @@ model UserRole {
 model Company {
   id       String         @id @db.Uuid @default(uuid())
   name     String
+  owner_id String @db.Uuid
 
   userRoles    UserRole[]
   stores Store[]
+  owner User @relation(fields: [owner_id], references: [id])
 
   @@map("companies")
 }
@@ -73,6 +76,7 @@ model Feature {
   name    String
   description String
   service String
+  is_public Boolean @default(true)
 
   roles   FeatureRole[]
 

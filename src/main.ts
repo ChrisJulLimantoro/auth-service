@@ -1,17 +1,32 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { RPCExceptionFilter } from './exception/rpc-exception.filter';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
+import { RPCExceptionFilter } from './exception/rpc-exception.filter';
 
 async function bootstrap() {
-  const app = await NestFactory.createMicroservice<MicroserviceOptions>(
+  const tcpService = await NestFactory.createMicroservice<MicroserviceOptions>(
     AppModule,
     {
       transport: Transport.TCP,
+      options: { port: 3000 }, // Unique port for this TCP service
     },
   );
-  app.useGlobalFilters(new RPCExceptionFilter());
 
-  app.listen();
+  // Microservice 2 - RabbitMQ
+  const rabbitMQService =
+    await NestFactory.createMicroservice<MicroserviceOptions>(AppModule, {
+      transport: Transport.RMQ,
+      options: {
+        urls: ['amqp://localhost:5672'],
+        queue: 'auth_service_queue',
+        noAck: false,
+      },
+    });
+
+  tcpService.useGlobalFilters(new RPCExceptionFilter());
+  // rabbitMQService.useGlobalFilters(new RPCExceptionFilter());
+
+  // Start all services
+  await Promise.all([tcpService.listen(), rabbitMQService.listen()]);
 }
 bootstrap();

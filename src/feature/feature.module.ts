@@ -7,9 +7,10 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { DiscoveryModule } from '@nestjs/core';
 import { MessagePattern } from '@nestjs/microservices';
 import { MessagePatternDiscoveryService } from 'src/discovery/message-pattern-discovery.service';
+import { SharedModule } from 'src/shared.module';
 
 @Module({
-  imports: [DiscoveryModule],
+  imports: [DiscoveryModule, SharedModule],
   controllers: [FeatureController],
   providers: [
     FeatureService,

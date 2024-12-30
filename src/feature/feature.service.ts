@@ -30,7 +30,10 @@ export class FeatureService extends BaseService {
         this.featureRepository.create(pattern);
       }
     });
-    return this.featureRepository.findAll();
+    const all = (await this.featureRepository.findAll()).sort((a, b) =>
+      a.name > b.name ? 1 : -1,
+    );
+    return CustomResponse.success('Feature Synced', all, 200);
   }
 
   async assignFeature(body: any) {

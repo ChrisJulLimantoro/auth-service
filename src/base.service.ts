@@ -38,8 +38,8 @@ export abstract class BaseService {
     if (!oldData) {
       return CustomResponse.error('Data not found', null, 404);
     }
-    this.validation.validate(data, this.updateSchema);
-    const newData = await this.repository.update(id, data);
+    const validatedData = this.validation.validate(data, this.updateSchema);
+    const newData = await this.repository.update(id, validatedData);
     return CustomResponse.success('Data Updated!', newData, 200);
   }
 
