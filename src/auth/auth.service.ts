@@ -22,11 +22,31 @@ export class AuthService {
     if (!passwordMatch) {
       return CustomResponse.error('Invalid password', null, 400);
     }
+
+    const correlatedCompany = await this.repository.getCorrelatedCompany(
+      user.id,
+    );
+
+    const correlatedStore = await this.repository.getCorrelatedStore(user.id);
+
+    console.log(correlatedCompany, correlatedStore);
     //TODO: IMPLEMENT MORE USER DATA TO BE RETURNED
     const userData = {
       id: user.id,
       email: user.email,
+      company: correlatedCompany.flatMap((c) => c.company_id),
+      store: correlatedStore.flatMap((s) => s.store_id),
     };
     return CustomResponse.success('Login successful', userData, 200);
+  }
+
+  async authorize(data: any) {
+    console.log('Authenticating user with request!', data);
+    const user = data.userId;
+    const cmd = data.cmd;
+    const company = data.companyId;
+    const store = data.storeId;
+    const response = await this.repository.authorize(user, cmd, company, store);
+    return response > 0;
   }
 }

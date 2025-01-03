@@ -12,4 +12,10 @@ export class AuthController {
   async login(@Payload() data: LoginRequest) {
     return this.authService.login(data);
   }
+
+  @MessagePattern({ cmd: 'authorize' })
+  @Exempt()
+  async authorize(@Payload() data: string) {
+    return this.authService.authorize(data);
+  }
 }

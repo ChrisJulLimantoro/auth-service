@@ -19,8 +19,12 @@ export class RoleController {
 
   @MessagePattern({ cmd: 'get:role' })
   @Describe('Get all roles')
-  async findAll(): Promise<CustomResponse> {
-    return this.service.findAll();
+  async findAll(@Payload() data: any): Promise<CustomResponse> {
+    const body = data.body;
+    const filter = {
+      company_id: body.companyId,
+    };
+    return this.service.findAll(filter);
   }
 
   @MessagePattern({ cmd: 'get:role/*' })

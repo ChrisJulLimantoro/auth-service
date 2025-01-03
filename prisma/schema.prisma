@@ -75,7 +75,7 @@ model Company {
   name     String
   owner_id String @db.Uuid
 
-  userRoles    Role[]
+  roles    Role[]
   stores Store[]
   owner User @relation(fields: [owner_id], references: [id])
 
@@ -94,7 +94,7 @@ model Store {
   name     String
   company_id String @db.Uuid
 
-  userRoles    Role[]
+  roles    Role[]
   company Company @relation(fields: [company_id], references: [id])
 
   created_at DateTime @default(now())
