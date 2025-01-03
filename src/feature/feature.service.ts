@@ -19,20 +19,18 @@ export class FeatureService extends BaseService {
 
   async syncFeature(data: any[]) {
     const oldData = await this.featureRepository.findAll();
-    data.map((pattern) => {
-      if (
-        !oldData.find(
-          (oldPattern) =>
-            oldPattern.pattern === pattern.pattern &&
-            oldPattern.service === pattern.service,
-        )
-      ) {
-        this.featureRepository.create(pattern);
+    for (const pattern of data) {
+      const exists = oldData.find(
+        (oldPattern) =>
+          oldPattern.pattern === pattern.pattern &&
+          oldPattern.service === pattern.service,
+      );
+      if (!exists) {
+        await this.featureRepository.create(pattern);
       }
-    });
-    const all = (await this.featureRepository.findAll()).sort((a, b) =>
-      a.name > b.name ? 1 : -1,
-    );
+    }
+
+    const all = await this.featureRepository.findAll();
     return CustomResponse.success('Feature Synced', all, 200);
   }
 

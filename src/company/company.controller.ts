@@ -21,9 +21,15 @@ export class CompanyController {
     const channel = context.getChannelRef();
     const originalMsg = context.getMessage();
 
+    const sanitizedData = {
+      ...data,
+      created_at: new Date(data.created_at),
+      updated_at: new Date(data.updated_at),
+      deleted_at: data.deleted_at ? new Date(data.deleted_at) : null,
+    };
+
     try {
-      console.log('hello');
-      const response = await this.companyService.create(data);
+      const response = await this.companyService.create(sanitizedData);
       if (response.success) {
         channel.ack(originalMsg);
       }

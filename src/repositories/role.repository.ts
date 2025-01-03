@@ -8,6 +8,23 @@ export class RoleRepository extends BaseRepository<any> {
     const relations = {
       features: { include: { feature: true } },
     };
-    super(prisma, 'role', relations); // 'role' is the Prisma model name
+    super(prisma, 'role', relations, true); // 'role' is the Prisma model name
+  }
+
+  async assignRoleToUser(userId: string, roleId: string) {
+    return this.prisma.userRole.create({
+      data: {
+        user_id: userId,
+        role_id: roleId,
+      },
+    });
+  }
+
+  async unassignRoleToUser(userId: string, roleId: string) {
+    return this.prisma.userRole.deleteMany({
+      where: {
+        AND: [{ user_id: userId }, { role_id: roleId }],
+      },
+    });
   }
 }

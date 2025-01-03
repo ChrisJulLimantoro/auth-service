@@ -22,4 +22,22 @@ export class RoleService extends BaseService {
   async create(data: CreateRoleRequest): Promise<CustomResponse> {
     return super.create(data);
   }
+
+  async assignRole(body: any) {
+    const { user_id, role_id } = body;
+    const created = await this.roleRepository.assignRoleToUser(
+      user_id,
+      role_id,
+    );
+    return CustomResponse.success('Role assigned to user', created, 200);
+  }
+
+  async unassignRole(body: any) {
+    const { user_id, role_id } = body;
+    const deleted = await this.roleRepository.unassignRoleToUser(
+      user_id,
+      role_id,
+    );
+    return CustomResponse.success('Role unassigned to user', deleted, 200);
+  }
 }

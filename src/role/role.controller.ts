@@ -44,4 +44,18 @@ export class RoleController {
     const param = data.params;
     return this.service.delete(param.id);
   }
+
+  @MessagePattern({ cmd: 'post:assign-role' })
+  @Describe('Assign role to user')
+  async assignRole(@Payload() data: any): Promise<CustomResponse> {
+    const body = data.body;
+    return this.service.assignRole(body);
+  }
+
+  @MessagePattern({ cmd: 'post:unassign-role' })
+  @Describe('Unassign role to user')
+  async unassignRole(@Payload() data: any): Promise<CustomResponse> {
+    const body = data.body;
+    return this.service.unassignRole(body);
+  }
 }

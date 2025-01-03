@@ -20,32 +20,54 @@ model User {
 
   roles    UserRole[]
   companies Company[]
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  deleted_at DateTime?
+
   @@map("users")
+  @@index([deleted_at]) // optimize for soft delete
+  @@index([email]) // optimize for query
 }
 
 model Role {
   id      String   @id @db.Uuid @default(uuid())
   name     String
+  company_id String @db.Uuid
+  store_id String? @db.Uuid
 
   users    UserRole[]
   features FeatureRole[]
+  company Company @relation(fields: [company_id], references: [id])
+  store Store? @relation(fields: [store_id], references: [id])
 
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  deleted_at DateTime?
+
+  @@unique([name, company_id, store_id])
   @@map("roles")
+  @@index([deleted_at]) // optimize for soft delete
+  @@index([company_id, store_id]) // optimize for query
 }
 
 model UserRole {
   id     String   @id @db.Uuid @default(uuid())
   user_id String  @db.Uuid
   role_id String  @db.Uuid
-  company_id String @db.Uuid
-  store_id String @db.Uuid
+
   user   User     @relation(fields: [user_id], references: [id])
   role   Role     @relation(fields: [role_id], references: [id])
-  company Company @relation(fields: [company_id], references: [id])
-  store Store @relation(fields: [store_id], references: [id])
 
-  @@unique([user_id, role_id, company_id, store_id])
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  deleted_at DateTime?
+
+  @@unique([user_id, role_id])
   @@map("user_roles")
+  @@index([deleted_at]) // optimize for soft delete
+  @@index([user_id])
+  @@index([role_id])
 }
 
 model Company {
@@ -53,11 +75,18 @@ model Company {
   name     String
   owner_id String @db.Uuid
 
-  userRoles    UserRole[]
+  userRoles    Role[]
   stores Store[]
   owner User @relation(fields: [owner_id], references: [id])
 
-  @@map("companies")
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  deleted_at DateTime?
+
+  @@map("companies")  
+  @@index([deleted_at]) // optimize for soft delete
+  @@index([owner_id]) // optimize for query
+
 }
 
 model Store {
@@ -65,10 +94,16 @@ model Store {
   name     String
   company_id String @db.Uuid
 
-  userRoles    UserRole[]
+  userRoles    Role[]
   company Company @relation(fields: [company_id], references: [id])
 
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  deleted_at DateTime?
+
   @@map("stores")
+  @@index([deleted_at]) // optimize for soft delete
+  @@index([company_id]) // optimize for query
 }
 
 model Feature {
@@ -80,7 +115,13 @@ model Feature {
 
   roles   FeatureRole[]
 
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  deleted_at DateTime?
+
   @@map("features")
+  @@index([deleted_at]) // optimize for soft delete
+  @@index([is_public]) // optimize for query
 }
 
 model FeatureRole {
@@ -90,7 +131,14 @@ model FeatureRole {
 
   feature    Feature  @relation(fields: [feature_id], references: [id])
   role       Role     @relation(fields: [role_id], references: [id])
-  @@unique([feature_id, role_id])
 
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  deleted_at DateTime?
+
+  @@unique([feature_id, role_id])
   @@map("feature_roles")
+  @@index([deleted_at]) // optimize for soft delete
+  @@index([feature_id])
+  @@index([role_id])
 }

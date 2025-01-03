@@ -9,7 +9,7 @@ export class UserRepository extends BaseRepository<any> {
     const relations = {
       roles: { include: { role: true } },
     };
-    super(prisma, 'user', relations); // 'user' is the Prisma model name
+    super(prisma, 'user', relations, true); // 'user' is the Prisma model name
   }
 
   async createUser(data: any) {

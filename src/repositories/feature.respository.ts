@@ -8,7 +8,7 @@ export class FeatureRepository extends BaseRepository<any> {
     const relations = {
       roles: { include: { role: true } },
     };
-    super(prisma, 'feature', relations); // 'role' is the Prisma model name
+    super(prisma, 'feature', relations, true); // 'role' is the Prisma model name
   }
 
   // function to assign feature to role

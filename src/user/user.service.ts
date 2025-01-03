@@ -11,8 +11,11 @@ export class UserService {
   ) {}
 
   async createUser(data: CreateUserRequest) {
-    this.validation.validate(data, CreateUserRequest.schema());
-    const newUser = await this.repository.createUser(data);
+    const validated = this.validation.validate(
+      data,
+      CreateUserRequest.schema(),
+    );
+    const newUser = await this.repository.createUser(validated);
     return CustomResponse.success('User Created!', newUser);
   }
 

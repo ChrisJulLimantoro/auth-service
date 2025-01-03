@@ -8,6 +8,6 @@ export class StoreRepository extends BaseRepository<any> {
     const relations = {
       company: true,
     };
-    super(prisma, 'store', relations, false); // 'role' is the Prisma model name
+    super(prisma, 'store', relations, true); // 'role' is the Prisma model name
   }
 }

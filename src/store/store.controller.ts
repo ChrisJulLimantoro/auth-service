@@ -14,8 +14,15 @@ export class StoreController {
     const channel = context.getChannelRef();
     const originalMsg = context.getMessage();
 
+    const sanitizedData = {
+      ...data,
+      created_at: new Date(data.created_at),
+      updated_at: new Date(data.updated_at),
+      deleted_at: data.deleted_at ? new Date(data.deleted_at) : null,
+    };
+
     try {
-      const response = await this.service.create(data);
+      const response = await this.service.create(sanitizedData);
       if (response.success) {
         channel.ack(originalMsg);
       }
