@@ -31,7 +31,7 @@ export class CreateCompanyRequest {
     return z.object({
       id: z.string().uuid(),
       name: z.string().min(3).max(255),
-      code: z.string().min(3).max(255),
+      code: z.string().max(5),
       owner_id: z.string().uuid(),
       created_at: z.date(),
       updated_at: z.date(),

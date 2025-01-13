@@ -52,7 +52,7 @@ export class CompanyController {
         channel.ack(originalMsg);
       }
     } catch (error) {
-      console.error('Error processing company_created event', error.stack);
+      console.error('Error processing company_deleted event', error.stack);
       channel.nack(originalMsg);
       // Optional: Send the error message to a DLQ (Dead Letter Queue) or retry queue
     }
