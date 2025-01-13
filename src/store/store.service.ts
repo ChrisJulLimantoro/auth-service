@@ -17,4 +17,12 @@ export class StoreService extends BaseService {
   ) {
     super(validation);
   }
+
+  protected transformCreateData(data: any) {
+    return new CreateStoreRequest(data);
+  }
+
+  protected transformUpdateData(data: any) {
+    return new UpdateStoreRequest(data);
+  }
 }

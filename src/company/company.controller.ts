@@ -57,4 +57,28 @@ export class CompanyController {
       // Optional: Send the error message to a DLQ (Dead Letter Queue) or retry queue
     }
   }
+
+  @EventPattern({ cmd: 'company_updated' })
+  @Exempt()
+  async companyUpdated(@Payload() data: any, @Ctx() context: RmqContext) {
+    console.log('Company Updated emit received', data);
+    const channel = context.getChannelRef();
+    const originalMsg = context.getMessage();
+
+    const sanitizedData = {
+      code: data.code,
+      name: data.name,
+    };
+
+    try {
+      const response = await this.companyService.update(data.id, sanitizedData);
+      if (response.success) {
+        channel.ack(originalMsg);
+      }
+    } catch (error) {
+      console.error('Error processing company_updated event', error.stack);
+      channel.nack(originalMsg);
+      // Optional: Send the error message to a DLQ (Dead Letter Queue) or retry queue
+    }
+  }
 }

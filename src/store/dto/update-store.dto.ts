@@ -1,9 +1,9 @@
 import { z } from 'zod';
 
 export class UpdateStoreRequest {
-  name: string;
-  code: string;
-  company_id: string;
+  name: string | null;
+  code: string | null;
+  company_id: string | null;
 
   constructor({ name, code, company_id }) {
     this.name = name;

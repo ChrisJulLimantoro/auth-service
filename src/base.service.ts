@@ -1,4 +1,3 @@
-import { Injectable } from '@nestjs/common';
 import { CustomResponse } from './exception/dto/custom-response.dto';
 import { ValidationService } from './validation/validation.service';
 
@@ -10,10 +9,22 @@ export abstract class BaseService {
 
   constructor(protected readonly validation: ValidationService) {}
 
+  protected transformCreateData(data: any): any {
+    return data; // Default implementation (no transformation)
+  }
+
+  protected transformUpdateData(data: any): any {
+    return data; // Default implementation (no transformation)
+  }
+
   // Create
   async create(data: any): Promise<CustomResponse> {
+    data = this.transformCreateData(data);
     const validatedData = this.validation.validate(data, this.createSchema);
     const newData = await this.repository.create(validatedData);
+    if (!newData) {
+      return CustomResponse.error('Failed to create new data', null, 500);
+    }
     return CustomResponse.success('New Data Created!', newData, 201);
   }
 
@@ -34,6 +45,7 @@ export abstract class BaseService {
 
   // Update
   async update(id: string, data: any): Promise<CustomResponse> {
+    data = this.transformUpdateData(data);
     const oldData = await this.repository.findOne(id);
     if (!oldData) {
       return CustomResponse.error('Data not found', null, 404);

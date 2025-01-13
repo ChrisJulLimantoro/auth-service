@@ -19,6 +19,14 @@ export class RoleService extends BaseService {
     super(validation); // Pass the validation service to the parent constructor
   }
 
+  protected transformCreateData(data: any) {
+    return new CreateRoleRequest(data);
+  }
+
+  protected transformUpdateData(data: any) {
+    return new CreateRoleRequest(data);
+  }
+
   async create(data: CreateRoleRequest): Promise<CustomResponse> {
     return super.create(data);
   }

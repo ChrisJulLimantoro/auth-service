@@ -11,6 +11,7 @@ export class UserService {
   ) {}
 
   async createUser(data: CreateUserRequest) {
+    data = new CreateUserRequest(data);
     const validated = this.validation.validate(
       data,
       CreateUserRequest.schema(),
