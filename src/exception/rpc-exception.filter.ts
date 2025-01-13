@@ -23,7 +23,7 @@ export class RPCExceptionFilter<T> implements ExceptionFilter {
       // Format the error response
       const errorResponse = {
         statusCode: 500,
-        message: exception instanceof Error ? exception.message : exception,
+        message: 'Internal server error',
         error: exception instanceof Error ? exception.message : exception,
         data: data, // Optional: include the original data for debugging
       };
