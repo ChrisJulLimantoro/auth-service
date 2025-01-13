@@ -40,4 +40,13 @@ export class UserService {
     await this.repository.delete(id);
     return CustomResponse.success('User deleted!', user, 200);
   }
+
+  async updateUser(id: string, data: any) {
+    const user = await this.repository.findOne(id);
+    if (!user) {
+      return CustomResponse.error('User not found', null, 404);
+    }
+    const updated = await this.repository.update(id, data);
+    return CustomResponse.success('User updated!', updated);
+  }
 }

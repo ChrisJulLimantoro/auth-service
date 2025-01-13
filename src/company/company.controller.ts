@@ -17,7 +17,6 @@ export class CompanyController {
   @EventPattern({ cmd: 'company_created' })
   @Exempt()
   async companyCreated(@Payload() data: any, @Ctx() context: RmqContext) {
-    console.log('Company created emit received', data);
     const channel = context.getChannelRef();
     const originalMsg = context.getMessage();
 

@@ -14,7 +14,6 @@ export class UserRepository extends BaseRepository<any> {
   }
 
   async createUser(data: any) {
-    data.password = await bcrypt.hash(data.password, 10);
     return this.create(data); // Using the base create method
   }
 
@@ -22,6 +21,7 @@ export class UserRepository extends BaseRepository<any> {
     return this.prisma.user.findUnique({
       where: {
         email,
+        deleted_at: null,
       },
     });
   }
@@ -56,6 +56,10 @@ export class UserRepository extends BaseRepository<any> {
       });
     }
 
+    whereConditions.push({
+      deleted_at: null,
+    });
+
     return this.prisma.user.count({
       where: {
         id: userId,
@@ -81,6 +85,7 @@ export class UserRepository extends BaseRepository<any> {
             user_id: userId,
           },
         },
+        deleted_at: null,
       },
     });
   }
@@ -96,6 +101,7 @@ export class UserRepository extends BaseRepository<any> {
             user_id: userId,
           },
         },
+        deleted_at: null,
       },
     });
   }
