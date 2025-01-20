@@ -13,6 +13,7 @@ export class FeatureController {
     @Inject('MASTER') private readonly masterClient: ClientProxy,
     @Inject('FINANCE') private readonly financeClient: ClientProxy,
     @Inject('INVENTORY') private readonly inventoryClient: ClientProxy,
+    @Inject('TRANSACTION') private readonly transactionClient: ClientProxy,
   ) {}
 
   @MessagePattern({ cmd: 'sync_feature' })
@@ -48,6 +49,14 @@ export class FeatureController {
       .toPromise();
     inventoryPatterns.data.map((pattern) => {
       pattern.service = 'inventory';
+      patterns.push(pattern);
+    });
+    // from transaction Service
+    const transactionPatterns = await this.transactionClient
+      .send({ cmd: 'get_routes' }, {})
+      .toPromise();
+    transactionPatterns.data.map((pattern) => {
+      pattern.service = 'transaction';
       patterns.push(pattern);
     });
 
