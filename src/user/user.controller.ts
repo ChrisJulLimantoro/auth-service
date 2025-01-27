@@ -6,10 +6,12 @@ import {
   Res,
   Delete,
   Param,
+  Inject,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserRequest } from './dto/create-user-request.dto';
 import {
+  ClientProxy,
   Ctx,
   EventPattern,
   MessagePattern,
@@ -18,12 +20,14 @@ import {
 } from '@nestjs/microservices';
 import { Exempt } from 'src/decorator/exempt.decorator';
 import { RoleService } from 'src/role/role.service';
+import { Describe } from 'src/decorator/describe.decorator';
 
 @Controller('user')
 export class UserController {
   constructor(
     private readonly userService: UserService,
     private readonly roleService: RoleService,
+    @Inject('MASTER') private readonly masterClient: ClientProxy,
   ) {}
 
   private async handleEvent(
@@ -109,5 +113,18 @@ export class UserController {
       () => this.userService.updateUser(data.id, sanitizedData),
       'Error processing employee_updated event',
     );
+  }
+
+  @EventPattern({ cmd: 'post:change-password' })
+  @Describe('Change password')
+  async changePassword(@Payload() data: any) {
+    const id = data.params.user.id;
+    const body = data.body;
+    console.log('change password', id, body);
+    const res = await this.userService.changePassword(id, body);
+    if (res.success) {
+      this.masterClient.emit({ cmd: 'password_changed' }, res.data);
+    }
+    return res;
   }
 }

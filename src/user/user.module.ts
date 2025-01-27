@@ -5,9 +5,10 @@ import { UserRepository } from '../repositories/user.repository';
 import { PrismaModule } from 'src/prisma/prisma.module';
 import { RoleService } from 'src/role/role.service';
 import { RoleRepository } from 'src/repositories/role.repository';
+import { SharedModule } from 'src/shared.module';
 
 @Module({
-  imports: [PrismaModule],
+  imports: [PrismaModule, SharedModule],
   controllers: [UserController],
   providers: [UserService, UserRepository, RoleService, RoleRepository],
 })

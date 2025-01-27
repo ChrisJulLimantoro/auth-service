@@ -23,24 +23,10 @@ export class AuthService {
       return CustomResponse.error('Invalid password', null, 400);
     }
 
-    const correlatedCompany = await this.repository.getCorrelatedCompany(
-      user.id,
-    );
-
-    const correlatedStore = await this.repository.getCorrelatedStore(user.id);
-
-    const ownedCompany = await this.repository.getOwnedCompany(user.id);
-
-    const ownedStore = await this.repository.getOwnedStore(user.id);
-
     //TODO: IMPLEMENT MORE USER DATA TO BE RETURNED
     const userData = {
       id: user.id,
       email: user.email,
-      company: correlatedCompany.map((c) => c.company),
-      store: correlatedStore.map((s) => s.store),
-      owned_company: ownedCompany,
-      owned_store: ownedStore,
     };
     return CustomResponse.success('Login successful', userData, 200);
   }
