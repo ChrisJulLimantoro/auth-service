@@ -77,7 +77,7 @@ export class UserRepository extends BaseRepository<any> {
   async getCorrelatedCompany(userId: string) {
     return this.prisma.role.findMany({
       select: {
-        company_id: true,
+        company: true,
       },
       where: {
         users: {
@@ -93,13 +93,33 @@ export class UserRepository extends BaseRepository<any> {
   async getCorrelatedStore(userId: string) {
     return this.prisma.role.findMany({
       select: {
-        store_id: true,
+        store: true,
       },
       where: {
         users: {
           some: {
             user_id: userId,
           },
+        },
+        deleted_at: null,
+      },
+    });
+  }
+
+  async getOwnedCompany(userId: string) {
+    return this.prisma.company.findMany({
+      where: {
+        owner_id: userId,
+        deleted_at: null,
+      },
+    });
+  }
+
+  async getOwnedStore(userId: string) {
+    return this.prisma.store.findMany({
+      where: {
+        company: {
+          owner_id: userId,
         },
         deleted_at: null,
       },

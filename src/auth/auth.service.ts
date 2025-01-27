@@ -29,13 +29,18 @@ export class AuthService {
 
     const correlatedStore = await this.repository.getCorrelatedStore(user.id);
 
-    console.log(correlatedCompany, correlatedStore);
+    const ownedCompany = await this.repository.getOwnedCompany(user.id);
+
+    const ownedStore = await this.repository.getOwnedStore(user.id);
+
     //TODO: IMPLEMENT MORE USER DATA TO BE RETURNED
     const userData = {
       id: user.id,
       email: user.email,
-      company: correlatedCompany.flatMap((c) => c.company_id),
-      store: correlatedStore.flatMap((s) => s.store_id),
+      company: correlatedCompany.map((c) => c.company),
+      store: correlatedStore.map((s) => s.store),
+      owned_company: ownedCompany,
+      owned_store: ownedStore,
     };
     return CustomResponse.success('Login successful', userData, 200);
   }

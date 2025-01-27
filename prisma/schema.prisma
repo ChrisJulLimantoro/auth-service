@@ -92,8 +92,9 @@ model Company {
 
 model Store {
   id      String         @id @db.Uuid @default(uuid())
-  code  String
-  name     String
+  code    String
+  name    String
+  logo    String
   company_id String @db.Uuid
 
   roles    Role[]
