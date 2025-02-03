@@ -27,6 +27,8 @@ export class AuthService {
     const userData = {
       id: user.id,
       email: user.email,
+      company_id: 'f6c027b7-1443-47b5-9526-6354c287d6f2',
+      store_id: '195d72cf-a8ba-4bba-9b12-f5e742fb6668',
     };
     return CustomResponse.success('Login successful', userData, 200);
   }
