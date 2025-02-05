@@ -7,6 +7,9 @@ export class RoleRepository extends BaseRepository<any> {
   constructor(prisma: PrismaService) {
     const relations = {
       features: { include: { feature: true } },
+      company: true,
+      store: true,
+      users: true,
     };
     super(prisma, 'role', relations, true); // 'role' is the Prisma model name
   }

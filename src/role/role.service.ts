@@ -27,8 +27,27 @@ export class RoleService extends BaseService {
     return new CreateRoleRequest(data);
   }
 
-  async create(data: CreateRoleRequest): Promise<CustomResponse> {
-    return super.create(data);
+  async create(data: any): Promise<CustomResponse> {
+    // Call the parent create method
+    if (data.store_id == '') {
+      data.store_id = null;
+      return super.create(data);
+    }
+
+    var count = 0;
+    const stores = data.store_id;
+    for (const store of stores) {
+      const formData = { ...data, store_id: store };
+      const createData = this.transformCreateData(formData);
+      const validated = this.validation.validate(createData, this.createSchema);
+      const created = await this.roleRepository.create(validated);
+      if (created) count++;
+    }
+    return CustomResponse.success(
+      `${count} roles created successfully`,
+      null,
+      201,
+    );
   }
 
   async assignRole(body: any) {
