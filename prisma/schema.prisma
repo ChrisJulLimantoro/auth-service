@@ -18,6 +18,7 @@ model User {
   email   String   @unique
   password String
 
+  role_owned Role[]
   roles    UserRole[]
   companies Company[]
 
@@ -35,11 +36,13 @@ model Role {
   name     String
   company_id String @db.Uuid
   store_id String? @db.Uuid
+  owner_id String @db.Uuid
 
-  users    UserRole[]
-  features FeatureRole[]
-  company Company @relation(fields: [company_id], references: [id])
-  store Store? @relation(fields: [store_id], references: [id])
+  owner     User @relation(fields: [owner_id], references: [id])
+  users     UserRole[]
+  features  FeatureRole[]
+  company   Company @relation(fields: [company_id], references: [id])
+  store     Store? @relation(fields: [store_id], references: [id])
 
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt

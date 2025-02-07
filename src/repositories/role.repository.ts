@@ -14,6 +14,22 @@ export class RoleRepository extends BaseRepository<any> {
     super(prisma, 'role', relations, true); // 'role' is the Prisma model name
   }
 
+  async getRolesByUser(userId: string) {
+    return this.prisma.userRole.findMany({
+      where: {
+        user_id: userId,
+      },
+    });
+  }
+
+  async getUsersByRole(roleId: string) {
+    return this.prisma.userRole.findMany({
+      where: {
+        role_id: roleId,
+      },
+    });
+  }
+
   async assignRoleToUser(userId: string, roleId: string) {
     return this.prisma.userRole.create({
       data: {

@@ -13,17 +13,29 @@ export class RoleController {
   @MessagePattern({ cmd: 'post:role' })
   @Describe('Create a new role')
   async create(@Payload() data: any): Promise<CustomResponse> {
-    data = data.body;
-    return this.service.create(data);
+    const create = data.body;
+    create.owner_id = data.params.user.id;
+    return this.service.create(create);
+  }
+
+  @MessagePattern({ cmd: 'get:role-user/*' })
+  @Describe('Get all roles assigned to a user')
+  async getRolesByUser(@Payload() data: any): Promise<CustomResponse> {
+    const param = data.params;
+    return this.service.getRolesByUser(param.id);
+  }
+
+  @MessagePattern({ cmd: 'get:user-role/*' })
+  @Describe('Get all users assigned to a role')
+  async getUsersByRole(@Payload() data: any): Promise<CustomResponse> {
+    const param = data.params;
+    return this.service.getUsersByRole(param.id);
   }
 
   @MessagePattern({ cmd: 'get:role' })
   @Describe('Get all roles')
   async findAll(@Payload() data: any): Promise<CustomResponse> {
-    const body = data.body;
-    const filter = {
-      company_id: body.companyId,
-    };
+    const filter = data.body;
     return this.service.findAll(filter);
   }
 
@@ -61,5 +73,12 @@ export class RoleController {
   async unassignRole(@Payload() data: any): Promise<CustomResponse> {
     const body = data.body;
     return this.service.unassignRole(body);
+  }
+
+  @MessagePattern({ cmd: 'post:mass-assign-role' })
+  @Describe('Assign multiple role to multiple users')
+  async massAssignRole(@Payload() data: any): Promise<CustomResponse> {
+    const body = data.body;
+    return this.service.massAssignRole(body);
   }
 }
