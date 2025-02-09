@@ -11,7 +11,6 @@ export class AppController {
   @Exempt()
   async getAllRoutes(): Promise<any> {
     const patterns = await this.discovery.getMessagePatterns();
-    console.log(patterns);
     return CustomResponse.success('Pattern Found!', patterns, 200);
   }
 }

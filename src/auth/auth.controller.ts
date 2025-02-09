@@ -18,4 +18,10 @@ export class AuthController {
   async authorize(@Payload() data: string) {
     return this.authService.authorize(data);
   }
+
+  @MessagePattern({ cmd: 'get:pages-available' })
+  @Exempt()
+  async getPagesAvailable(@Payload() data: any) {
+    return this.authService.getPagesAvailable(data);
+  }
 }

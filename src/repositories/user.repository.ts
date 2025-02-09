@@ -3,6 +3,7 @@ import * as bcrypt from 'bcrypt';
 import { Injectable } from '@nestjs/common';
 import { BaseRepository } from 'src/repositories/base.repository';
 import { CompanyController } from 'src/company/company.controller';
+import { features } from 'process';
 
 @Injectable()
 export class UserRepository extends BaseRepository<any> {
@@ -122,6 +123,69 @@ export class UserRepository extends BaseRepository<any> {
           owner_id: userId,
         },
         deleted_at: null,
+      },
+    });
+  }
+
+  async getPagesAvailable(
+    userId: string,
+    company_id: string,
+    store_id: string | null,
+  ) {
+    const whereClause: any = {
+      AND: [
+        {
+          users: {
+            some: {
+              user_id: userId,
+            },
+          },
+        },
+        { company_id: company_id },
+      ],
+    };
+
+    // Add store_id condition only if it's not null
+    if (store_id !== null && typeof store_id === 'string') {
+      whereClause.AND.push({ OR: [{ store_id }, { store_id: null }] });
+    }
+    return this.prisma.role.findMany({
+      where: whereClause,
+      select: {
+        pages: {
+          select: {
+            page: {
+              select: {
+                path: true,
+                action: true,
+              },
+            },
+          },
+        },
+      },
+    });
+  }
+
+  async isOwner(userId: string, companyId: string) {
+    return this.prisma.company.count({
+      where: {
+        AND: [
+          {
+            id: companyId,
+          },
+          {
+            owner_id: userId,
+          },
+        ],
+      },
+    });
+  }
+
+  async getPages() {
+    return this.prisma.page.findMany({
+      select: {
+        path: true,
+        action: true,
       },
     });
   }

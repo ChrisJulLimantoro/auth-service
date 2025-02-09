@@ -28,7 +28,6 @@ export class MessagePatternDiscoveryService {
           this.exploreMethodMetadata(instance, method, messagePatterns),
       );
     });
-    console.log(messagePatterns);
     return messagePatterns;
   }
   exploreMethodMetadata(instance: any, method: string, messagePatterns: any[]) {

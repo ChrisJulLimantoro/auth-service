@@ -29,6 +29,7 @@ export class AuthService {
       email: user.email,
       company_id: 'f6c027b7-1443-47b5-9526-6354c287d6f2',
       store_id: '195d72cf-a8ba-4bba-9b12-f5e742fb6668',
+      is_owner: user.is_owner,
     };
     return CustomResponse.success('Login successful', userData, 200);
   }
@@ -41,5 +42,24 @@ export class AuthService {
     const store = data.storeId;
     const response = await this.repository.authorize(user, cmd, company, store);
     return response > 0;
+  }
+
+  async getPagesAvailable(data: any) {
+    const user = data.params.user.id;
+    const company = data.body.company_id;
+    const store = data.body.store_id;
+    // if the owner return all pages
+    const owner = await this.repository.isOwner(user, company);
+    if (owner) {
+      const pages = await this.repository.getPages();
+      console.log(pages);
+      return CustomResponse.success('Pages found', pages, 200);
+    }
+
+    const pages = await this.repository.getPagesAvailable(user, company, store);
+    const uniquePages = [
+      ...new Set(pages.flatMap((item) => item.pages.map((p) => p.page))),
+    ];
+    return CustomResponse.success('Pages found', uniquePages, 200);
   }
 }
