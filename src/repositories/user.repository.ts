@@ -33,6 +33,12 @@ export class UserRepository extends BaseRepository<any> {
     companyId: string | null,
     storeId: string | null,
   ) {
+    // Check if Owner of the Company authorize
+    const isOwner = await this.isOwner(userId, companyId);
+    if (isOwner) {
+      return true;
+    }
+
     const whereConditions: any[] = [
       {
         features: {
@@ -61,7 +67,7 @@ export class UserRepository extends BaseRepository<any> {
       deleted_at: null,
     });
 
-    return this.prisma.user.count({
+    const user = await this.prisma.user.count({
       where: {
         id: userId,
         roles: {
@@ -73,6 +79,10 @@ export class UserRepository extends BaseRepository<any> {
         },
       },
     });
+
+    console.log('User authorized:', user);
+
+    return user > 0;
   }
 
   async getCorrelatedCompany(userId: string) {

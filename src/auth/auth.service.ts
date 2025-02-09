@@ -35,13 +35,31 @@ export class AuthService {
   }
 
   async authorize(data: any) {
+    if (data.cmd === 'get:pages-available') {
+      return true;
+    }
     console.log('Authenticating user with request!', data);
-    const user = data.userId;
+    const user = data.id;
     const cmd = data.cmd;
     const company = data.companyId;
     const store = data.storeId;
-    const response = await this.repository.authorize(user, cmd, company, store);
-    return response > 0;
+    const authorize = await this.repository.authorize(
+      user,
+      cmd,
+      company,
+      store,
+    );
+    const isOwner = await this.repository.isOwner(user, company);
+    if (isOwner) {
+      return { authorize: authorize, owner_id: user };
+    }
+
+    const currUser = await this.repository.findOne(user);
+    if (!currUser) {
+      return { authorized: false };
+    }
+
+    return { authorize: authorize, owner_id: currUser.owner_id };
   }
 
   async getPagesAvailable(data: any) {

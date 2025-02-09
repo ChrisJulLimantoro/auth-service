@@ -14,7 +14,6 @@ export class RoleController {
   @Describe({ description: 'Create a new role', fe: ['settings/role:add'] })
   async create(@Payload() data: any): Promise<CustomResponse> {
     const create = data.body;
-    create.owner_id = data.params.user.id;
     return this.service.create(create);
   }
 

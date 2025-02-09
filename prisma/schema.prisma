@@ -18,6 +18,7 @@ model User {
   email   String   @unique
   password String
   is_owner Boolean @default(false)
+  owner_id String? @db.Uuid
 
   role_owned Role[]
   roles    UserRole[]
