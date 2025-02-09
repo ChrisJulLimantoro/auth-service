@@ -4,13 +4,14 @@ import { ValidationService } from '../validation/validation.service';
 import { BaseService } from '../base.service';
 import { CreateRoleRequest } from './dto/create-role-request.dto';
 import { CustomResponse } from 'src/exception/dto/custom-response.dto';
+import { UpdateRoleRequest } from './dto/update-role-request.dto';
 
 @Injectable()
 export class RoleService extends BaseService {
   // Explicitly define the repository for RoleService
   protected repository = this.roleRepository;
   protected createSchema = CreateRoleRequest.schema();
-  protected updateSchema = CreateRoleRequest.schema(); // the update logic and boundaries is the same as create request
+  protected updateSchema = UpdateRoleRequest.schema(); // the update logic and boundaries is the same as create request
 
   constructor(
     private readonly roleRepository: RoleRepository, // Inject RoleRepository
@@ -24,7 +25,7 @@ export class RoleService extends BaseService {
   }
 
   protected transformUpdateData(data: any) {
-    return new CreateRoleRequest(data);
+    return new UpdateRoleRequest(data);
   }
 
   async create(data: any): Promise<CustomResponse> {
@@ -48,6 +49,13 @@ export class RoleService extends BaseService {
       null,
       201,
     );
+  }
+
+  async update(id: string, data: any): Promise<CustomResponse> {
+    if (data.store_id == '') {
+      data.store_id = null;
+    }
+    return super.update(id, data);
   }
 
   async getRolesByUser(user_id: string) {

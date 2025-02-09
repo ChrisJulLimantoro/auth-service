@@ -11,7 +11,7 @@ export class RoleController {
   constructor(private readonly service: RoleService) {}
 
   @MessagePattern({ cmd: 'post:role' })
-  @Describe('Create a new role')
+  @Describe({ description: 'Create a new role', fe: ['settings/role:add'] })
   async create(@Payload() data: any): Promise<CustomResponse> {
     const create = data.body;
     create.owner_id = data.params.user.id;
@@ -19,35 +19,50 @@ export class RoleController {
   }
 
   @MessagePattern({ cmd: 'get:role-user/*' })
-  @Describe('Get all roles assigned to a user')
+  @Describe({
+    description: 'Get all roles assigned to a user',
+    fe: ['settings/user-role:all'],
+  })
   async getRolesByUser(@Payload() data: any): Promise<CustomResponse> {
     const param = data.params;
     return this.service.getRolesByUser(param.id);
   }
 
   @MessagePattern({ cmd: 'get:user-role/*' })
-  @Describe('Get all users assigned to a role')
+  @Describe({
+    description: 'Get all users assigned to a role',
+    fe: ['settings/user-role:all'],
+  })
   async getUsersByRole(@Payload() data: any): Promise<CustomResponse> {
     const param = data.params;
     return this.service.getUsersByRole(param.id);
   }
 
   @MessagePattern({ cmd: 'get:role' })
-  @Describe('Get all roles')
+  @Describe({
+    description: 'Get all role',
+    fe: ['settings/role:open', 'settings/user-role:all'],
+  })
   async findAll(@Payload() data: any): Promise<CustomResponse> {
     const filter = data.body;
     return this.service.findAll(filter);
   }
 
   @MessagePattern({ cmd: 'get:role/*' })
-  @Describe('Get a role by id')
+  @Describe({
+    description: 'Get a role by id',
+    fe: ['settings/role:detail'],
+  })
   async findOne(@Payload() data: any): Promise<CustomResponse | null> {
     const param = data.params;
     return this.service.findOne(param.id);
   }
 
   @MessagePattern({ cmd: 'put:role/*' })
-  @Describe('Modify role')
+  @Describe({
+    description: 'Modify role',
+    fe: ['settings/role:edit'],
+  })
   async update(@Payload() data: any): Promise<CustomResponse> {
     const param = data.params;
     const body = data.body;
@@ -55,28 +70,20 @@ export class RoleController {
   }
 
   @MessagePattern({ cmd: 'delete:role/*' })
-  @Describe('Delete role')
+  @Describe({
+    description: 'Delete role',
+    fe: ['settings/role:delete'],
+  })
   async delete(@Payload() data: any): Promise<CustomResponse> {
     const param = data.params;
     return this.service.delete(param.id);
   }
 
-  @MessagePattern({ cmd: 'post:assign-role' })
-  @Describe('Assign role to user')
-  async assignRole(@Payload() data: any): Promise<CustomResponse> {
-    const body = data.body;
-    return this.service.assignRole(body);
-  }
-
-  @MessagePattern({ cmd: 'post:unassign-role' })
-  @Describe('Unassign role to user')
-  async unassignRole(@Payload() data: any): Promise<CustomResponse> {
-    const body = data.body;
-    return this.service.unassignRole(body);
-  }
-
   @MessagePattern({ cmd: 'post:mass-assign-role' })
-  @Describe('Assign multiple role to multiple users')
+  @Describe({
+    description: 'Assign multiple roles to multiple users',
+    fe: ['settings/user-role:all'],
+  })
   async massAssignRole(@Payload() data: any): Promise<CustomResponse> {
     const body = data.body;
     return this.service.massAssignRole(body);

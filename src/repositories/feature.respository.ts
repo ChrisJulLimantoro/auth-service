@@ -5,10 +5,25 @@ import { BaseRepository } from 'src/repositories/base.repository';
 @Injectable()
 export class FeatureRepository extends BaseRepository<any> {
   constructor(prisma: PrismaService) {
-    const relations = {
-      roles: { include: { role: true } },
-    };
-    super(prisma, 'feature', relations, true); // 'role' is the Prisma model name
+    const relations = {};
+    super(prisma, 'feature', relations, false); // 'role' is the Prisma model name
+  }
+
+  // function to get all features connected to page
+  async getAllToPage(page_id: string) {
+    return this.prisma.pageFeature.findMany({
+      where: {
+        page_id: page_id,
+      },
+    });
+  }
+
+  async getByRole(role_id: string) {
+    return this.prisma.featureRole.findMany({
+      where: {
+        role_id: role_id,
+      },
+    });
   }
 
   // function to assign feature to role

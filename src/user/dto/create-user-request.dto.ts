@@ -4,11 +4,13 @@ export class CreateUserRequest {
   id: string;
   email: string;
   password: string;
+  is_owner: boolean;
 
-  constructor(data: { id: string; email: string; password: string }) {
-    this.id = data.id;
-    this.email = data.email;
-    this.password = data.password;
+  constructor({ id, email, password, is_owner }) {
+    this.id = id;
+    this.email = email;
+    this.password = password;
+    this.is_owner = is_owner;
   }
 
   static schema() {
@@ -16,6 +18,7 @@ export class CreateUserRequest {
       id: z.string().uuid(),
       email: z.string().email(),
       password: z.string().min(10),
+      is_owner: z.boolean().optional().default(false),
     });
   }
 }

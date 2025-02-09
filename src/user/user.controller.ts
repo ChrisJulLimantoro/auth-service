@@ -78,7 +78,10 @@ export class UserController {
   async ownerCreated(@Payload() data: any, @Ctx() context: RmqContext) {
     await this.handleEvent(
       context,
-      () => this.userService.createUser(data),
+      () => {
+        data.is_owner = true;
+        return this.userService.createUser(data);
+      },
       'Error processing owner_created event',
     );
   }
@@ -116,7 +119,10 @@ export class UserController {
   }
 
   @EventPattern({ cmd: 'post:change-password' })
-  @Describe('Change password')
+  @Describe({
+    description: 'Change password',
+    fe: ['settings/password-change:all'],
+  })
   async changePassword(@Payload() data: any) {
     const id = data.params.user.id;
     const body = data.body;

@@ -17,6 +17,7 @@ model User {
   id       String   @id @db.Uuid @default(uuid())
   email   String   @unique
   password String
+  is_owner Boolean @default(false)
 
   role_owned Role[]
   roles    UserRole[]
@@ -43,6 +44,7 @@ model Role {
   features  FeatureRole[]
   company   Company @relation(fields: [company_id], references: [id])
   store     Store? @relation(fields: [store_id], references: [id])
+  pages     PageRole[]
 
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
@@ -59,16 +61,12 @@ model UserRole {
   user_id String  @db.Uuid
   role_id String  @db.Uuid
 
-  user   User     @relation(fields: [user_id], references: [id])
-  role   Role     @relation(fields: [role_id], references: [id])
+  user   User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  role   Role     @relation(fields: [role_id], references: [id], onDelete: Cascade)
 
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-  deleted_at DateTime?
 
   @@unique([user_id, role_id])
   @@map("user_roles")
-  @@index([deleted_at]) // optimize for soft delete
   @@index([user_id])
   @@index([role_id])
 }
@@ -117,17 +115,11 @@ model Feature {
   name    String
   description String
   service String
-  is_public Boolean @default(true)
 
   roles   FeatureRole[]
-
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-  deleted_at DateTime?
+  pages   PageFeature[]
 
   @@map("features")
-  @@index([deleted_at]) // optimize for soft delete
-  @@index([is_public]) // optimize for query
 }
 
 model FeatureRole {
@@ -135,16 +127,53 @@ model FeatureRole {
   feature_id String @db.Uuid
   role_id    String @db.Uuid
 
-  feature    Feature  @relation(fields: [feature_id], references: [id])
-  role       Role     @relation(fields: [role_id], references: [id])
+  feature    Feature  @relation(fields: [feature_id], references: [id], onDelete: Cascade)
+  role       Role     @relation(fields: [role_id], references: [id], onDelete: Cascade)
 
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-  deleted_at DateTime?
 
   @@unique([feature_id, role_id])
   @@map("feature_roles")
-  @@index([deleted_at]) // optimize for soft delete
   @@index([feature_id])
   @@index([role_id])
 }
+
+model Page {
+  id      String   @id @db.Uuid @default(uuid())
+  path    String
+  action  String
+
+  roles   PageRole[]
+  features PageFeature[]
+
+  @@map("pages")
+  @@index([path]) // optimize for query
+}
+
+model PageRole {
+  id     String   @id @db.Uuid @default(uuid())
+  page_id String @db.Uuid
+  role_id String @db.Uuid
+
+  page Page @relation(fields: [page_id], references: [id], onDelete: Cascade)
+  role Role @relation(fields: [role_id], references: [id], onDelete: Cascade)
+
+  @@unique([page_id, role_id])
+  @@map("page_roles")
+  @@index([page_id])
+  @@index([role_id])
+}
+
+model PageFeature {
+  id         String   @id @db.Uuid @default(uuid())
+  page_id    String @db.Uuid
+  feature_id String @db.Uuid
+
+  page    Page    @relation(fields: [page_id], references: [id], onDelete: Cascade)
+  feature Feature @relation(fields: [feature_id], references: [id], onDelete: Cascade)
+
+  @@unique([page_id, feature_id])
+  @@map("page_features")
+  @@index([page_id])
+  @@index([feature_id])
+}
+

@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { FeatureController } from './feature.controller';
 import { FeatureService } from './feature.service';
 import { FeatureRepository } from 'src/repositories/feature.respository';
+import { PageRepository } from 'src/repositories/page.repository';
 import { ValidationService } from 'src/validation/validation.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { DiscoveryModule } from '@nestjs/core';
@@ -15,6 +16,7 @@ import { SharedModule } from 'src/shared.module';
   providers: [
     FeatureService,
     FeatureRepository,
+    PageRepository,
     ValidationService,
     PrismaService,
     MessagePatternDiscoveryService,
