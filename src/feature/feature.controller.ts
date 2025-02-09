@@ -23,18 +23,16 @@ export class FeatureController {
     // From Auth Services
     const authPatterns = await this.discovery.getMessagePatterns();
     authPatterns.map((pattern) => {
-      pattern.service = 'auth';
       patterns.push(pattern);
     });
     // From Master Service
-    // const masterResponse = await this.masterClient
-    //   .send({ cmd: 'get_routes' }, {})
-    //   .toPromise();
-    // const masterPatterns = masterResponse.data;
-    // masterPatterns.map((pattern) => {
-    //   pattern.service = 'master';
-    //   patterns.push(pattern);
-    // });
+    const masterResponse = await this.masterClient
+      .send({ cmd: 'get_routes' }, {})
+      .toPromise();
+    const masterPatterns = masterResponse.data;
+    masterPatterns.map((pattern) => {
+      patterns.push(pattern);
+    });
     // from Finance Service
     // const financePatterns = await this.financeClient
     //   .send({ cmd: 'get_routes' }, {})
