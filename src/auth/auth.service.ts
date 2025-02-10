@@ -36,20 +36,20 @@ export class AuthService {
 
   async authorize(data: any) {
     if (data.cmd === 'get:pages-available') {
-      return true;
+      return { authorize: true };
     }
     console.log('Authenticating user with request!', data);
-    const user = data.id;
+    const user = data.user.id;
     const cmd = data.cmd;
-    const company = data.companyId;
-    const store = data.storeId;
+    const companyId = data.auth.company_id;
+    const storeId = data.auth.store_id;
     const authorize = await this.repository.authorize(
       user,
       cmd,
-      company,
-      store,
+      companyId,
+      storeId,
     );
-    const isOwner = await this.repository.isOwner(user, company);
+    const isOwner = await this.repository.isOwner(user, companyId);
     if (isOwner) {
       return { authorize: authorize, owner_id: user };
     }

@@ -42,13 +42,12 @@ export class FeatureController {
     //   patterns.push(pattern);
     // });
     // from Inventory Service
-    // const inventoryPatterns = await this.inventoryClient
-    //   .send({ cmd: 'get_routes' }, {})
-    //   .toPromise();
-    // inventoryPatterns.data.map((pattern) => {
-    //   pattern.service = 'inventory';
-    //   patterns.push(pattern);
-    // });
+    const inventoryPatterns = await this.inventoryClient
+      .send({ cmd: 'get_routes' }, {})
+      .toPromise();
+    inventoryPatterns.data.map((pattern) => {
+      patterns.push(pattern);
+    });
     // from transaction Service
     // const transactionPatterns = await this.transactionClient
     //   .send({ cmd: 'get_routes' }, {})

@@ -43,14 +43,14 @@ export class RoleController {
     fe: ['settings/role:open', 'settings/user-role:all'],
   })
   async findAll(@Payload() data: any): Promise<CustomResponse> {
-    const filter = data.body;
+    const filter = { owner_id: data.body.owner_id };
     return this.service.findAll(filter);
   }
 
   @MessagePattern({ cmd: 'get:role/*' })
   @Describe({
     description: 'Get a role by id',
-    fe: ['settings/role:detail'],
+    fe: ['settings/role:detail', 'settings/role:edit'],
   })
   async findOne(@Payload() data: any): Promise<CustomResponse | null> {
     const param = data.params;

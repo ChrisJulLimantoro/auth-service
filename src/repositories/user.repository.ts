@@ -39,6 +39,7 @@ export class UserRepository extends BaseRepository<any> {
       return true;
     }
 
+    console.log(userId, companyId, storeId);
     const whereConditions: any[] = [
       {
         features: {
@@ -51,18 +52,6 @@ export class UserRepository extends BaseRepository<any> {
       },
     ];
 
-    if (companyId !== null) {
-      whereConditions.push({
-        company_id: companyId,
-      });
-    }
-
-    if (storeId !== null) {
-      whereConditions.push({
-        store_id: storeId,
-      });
-    }
-
     whereConditions.push({
       deleted_at: null,
     });
@@ -73,14 +62,30 @@ export class UserRepository extends BaseRepository<any> {
         roles: {
           some: {
             role: {
-              AND: whereConditions,
+              company_id: companyId,
+              OR: [
+                {
+                  store_id: storeId,
+                },
+                {
+                  store_id: null,
+                },
+              ],
+              deleted_at: null,
+              features: {
+                some: {
+                  feature: {
+                    name: cmd,
+                  },
+                },
+              },
             },
           },
         },
       },
     });
-
     console.log('User authorized:', user);
+    console.log('Where Clause', whereConditions);
 
     return user > 0;
   }
