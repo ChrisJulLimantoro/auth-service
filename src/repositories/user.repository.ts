@@ -124,20 +124,29 @@ export class UserRepository extends BaseRepository<any> {
 
   async getOwnedCompany(userId: string) {
     return this.prisma.company.findMany({
+      select: {
+        id: true,
+        name: true,
+        code: true,
+        stores: {
+          select: {
+            id: true,
+            name: true,
+            code: true,
+          },
+          where: {
+            deleted_at: null,
+          },
+        },
+      },
       where: {
         owner_id: userId,
         deleted_at: null,
       },
-    });
-  }
-
-  async getOwnedStore(userId: string) {
-    return this.prisma.store.findMany({
-      where: {
-        company: {
-          owner_id: userId,
+      orderBy: {
+        stores: {
+          _count: 'desc',
         },
-        deleted_at: null,
       },
     });
   }
@@ -201,6 +210,36 @@ export class UserRepository extends BaseRepository<any> {
       select: {
         path: true,
         action: true,
+      },
+    });
+  }
+
+  async getAuthorizedStore(userId: string) {
+    return this.prisma.role.findMany({
+      select: {
+        company: {
+          select: {
+            id: true,
+            name: true,
+            code: true,
+          },
+        },
+        store: {
+          where: {
+            deleted_at: null,
+          },
+        },
+      },
+      where: {
+        users: {
+          some: {
+            user_id: userId,
+          },
+        },
+        company: {
+          deleted_at: null,
+        },
+        deleted_at: null,
       },
     });
   }
