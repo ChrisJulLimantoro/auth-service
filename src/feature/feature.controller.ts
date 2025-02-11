@@ -49,13 +49,12 @@ export class FeatureController {
       patterns.push(pattern);
     });
     // from transaction Service
-    // const transactionPatterns = await this.transactionClient
-    //   .send({ cmd: 'get_routes' }, {})
-    //   .toPromise();
-    // transactionPatterns.data.map((pattern) => {
-    //   pattern.service = 'transaction';
-    //   patterns.push(pattern);
-    // });
+    const transactionPatterns = await this.transactionClient
+      .send({ cmd: 'get_routes' }, {})
+      .toPromise();
+    transactionPatterns.data.map((pattern) => {
+      patterns.push(pattern);
+    });
 
     const response = await this.service.syncFeature(patterns);
     console.log(response.data);
