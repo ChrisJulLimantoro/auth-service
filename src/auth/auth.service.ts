@@ -148,7 +148,7 @@ export class AuthService {
     } else {
       const responses = await this.repository.getAuthorizedStore(user.id);
       for (const response of responses) {
-        console.log('hello');
+        console.log('hello', response);
         if (response.store) {
           const companyIndex = companies.findIndex(
             (item) => item.id === response.company.id,
@@ -173,10 +173,12 @@ export class AuthService {
           const stores = await this.storeRepository.findAll({
             company_id: response.company.id,
           });
+          console.log(stores);
           const companyIndex = companies.findIndex(
             (item) => item.id === response.company.id,
           );
-          if (companyIndex < 0) {
+          console.log(companyIndex);
+          if (companyIndex >= 0) {
             companies[companyIndex].stores = stores;
           } else {
             const newCompany = { ...response.company, stores: stores };
