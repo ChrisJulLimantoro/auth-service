@@ -60,7 +60,7 @@ export class AuthService {
           const companyIndex = companies.findIndex(
             (item) => item.id === response.company.id,
           );
-          if (companyIndex < 0) {
+          if (companyIndex >= 0) {
             companies[companyIndex].stores = stores;
           } else {
             const newCompany = { ...response.company, stores: stores };
