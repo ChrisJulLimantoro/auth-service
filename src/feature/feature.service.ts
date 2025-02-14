@@ -29,6 +29,7 @@ export class FeatureService extends BaseService {
     const oldDataPage = await this.pageRepository.findAll(); //excisting page data
     // Creation of new features, pages, and assign pages to feature
     for (const pattern of data) {
+      console.log(pattern);
       var featExist = oldDataFeature.find(
         (oldPattern) =>
           oldPattern.name == pattern.name &&
