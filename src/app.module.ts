@@ -11,6 +11,7 @@ import { FeatureModule } from './feature/feature.module';
 import { StoreModule } from './store/store.module';
 import { CompanyModule } from './company/company.module';
 import { SharedModule } from './shared.module';
+import { NotificationModule } from './notification/notification.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { SharedModule } from './shared.module';
     StoreModule,
     CompanyModule,
     SharedModule,
+    NotificationModule,
   ],
   controllers: [AppController],
   providers: [MessagePatternDiscoveryService],

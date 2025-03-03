@@ -12,6 +12,8 @@ async function bootstrap() {
     },
   );
 
+  //
+
   // Microservice 2 - RabbitMQ
   const rabbitMQService =
     await NestFactory.createMicroservice<MicroserviceOptions>(AppModule, {
@@ -19,8 +21,8 @@ async function bootstrap() {
       options: {
         urls: ['amqp://localhost:5672'],
         queue: 'auth_service_queue',
-        noAck: false,
-        queueOptions: { durable: true },
+        noAck: true,
+        queueOptions: { durable: false },
       },
     });
 
