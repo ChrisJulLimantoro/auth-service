@@ -21,8 +21,8 @@ async function bootstrap() {
       options: {
         urls: ['amqp://localhost:5672'],
         queue: 'auth_service_queue',
-        noAck: true,
-        queueOptions: { durable: false },
+        noAck: false,
+        queueOptions: { durable: true },
       },
     });
 
