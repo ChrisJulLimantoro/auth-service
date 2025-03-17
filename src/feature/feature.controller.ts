@@ -34,13 +34,13 @@ export class FeatureController {
       patterns.push(pattern);
     });
     // from Finance Service
-    // const financePatterns = await this.financeClient
-    //   .send({ cmd: 'get_routes' }, {})
-    //   .toPromise();
-    // financePatterns.data.map((pattern) => {
-    //   pattern.service = 'finance';
-    //   patterns.push(pattern);
-    // });
+    const financePatterns = await this.financeClient
+      .send({ cmd: 'get_routes' }, {})
+      .toPromise();
+    financePatterns.data.map((pattern) => {
+      pattern.service = 'finance';
+      patterns.push(pattern);
+    });
     // from Inventory Service
     const inventoryPatterns = await this.inventoryClient
       .send({ cmd: 'get_routes' }, {})
