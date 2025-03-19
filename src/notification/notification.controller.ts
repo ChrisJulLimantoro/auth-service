@@ -36,4 +36,29 @@ export class NotificationController {
       'Error processing employee_created event',
     );
   }
+
+  @EventPattern({ cmd: 'transaction_settlement' })
+  @Exempt()
+  async transactionSettlement(
+    @Payload() data: any,
+    @Ctx() context: RmqContext,
+  ) {
+    console.log('📥 Received transaction_settlement event:', data);
+    await this.handleEvent(
+      context,
+      () => this.notificationService.sendSettlementNotif(data),
+      'Error processing transaction_settlement event',
+    );
+  }
+
+  @EventPattern({ cmd: 'transaction_failed' })
+  @Exempt()
+  async transactionFailed(@Payload() data: any, @Ctx() context: RmqContext) {
+    console.log('📥 Received transaction_failed event:', data);
+    await this.handleEvent(
+      context,
+      () => this.notificationService.sendFailedNotif(data),
+      'Error processing transaction_failed event',
+    );
+  }
 }
