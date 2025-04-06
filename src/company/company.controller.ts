@@ -18,10 +18,18 @@ export class CompanyController {
       deleted_at: data.deleted_at ? new Date(data.deleted_at) : null,
     };
 
-    await RmqAckHelper.handleMessageProcessing(context, async () => {
-      const response = await this.companyService.create(sanitizedData);
-      if (!response.success) throw new Error('Company creation failed');
-    })();
+    await RmqAckHelper.handleMessageProcessing(
+      context,
+      async () => {
+        const response = await this.companyService.create(sanitizedData);
+        if (!response.success) throw new Error('Company creation failed');
+      },
+      {
+        queueName: 'company_created',
+        useDLQ: true,
+        dlqRoutingKey: 'dlq.company_created',
+      },
+    )();
   }
 
   @EventPattern({ cmd: 'company_deleted' })
@@ -29,10 +37,18 @@ export class CompanyController {
   async companyDeleted(@Payload() data: any, @Ctx() context: RmqContext) {
     console.log('Company deleted emit received', data);
 
-    await RmqAckHelper.handleMessageProcessing(context, async () => {
-      const response = await this.companyService.delete(data);
-      if (!response.success) throw new Error('Company deletion failed');
-    })();
+    await RmqAckHelper.handleMessageProcessing(
+      context,
+      async () => {
+        const response = await this.companyService.delete(data);
+        if (!response.success) throw new Error('Company deletion failed');
+      },
+      {
+        queueName: 'company_deleted',
+        useDLQ: true,
+        dlqRoutingKey: 'dlq.company_deleted',
+      },
+    )();
   }
 
   @EventPattern({ cmd: 'company_updated' })
@@ -41,9 +57,20 @@ export class CompanyController {
     console.log('Company Updated emit received', data);
     const sanitizedData = { code: data.code, name: data.name };
 
-    await RmqAckHelper.handleMessageProcessing(context, async () => {
-      const response = await this.companyService.update(data.id, sanitizedData);
-      if (!response.success) throw new Error('Company update failed');
-    })();
+    await RmqAckHelper.handleMessageProcessing(
+      context,
+      async () => {
+        const response = await this.companyService.update(
+          data.id,
+          sanitizedData,
+        );
+        if (!response.success) throw new Error('Company update failed');
+      },
+      {
+        queueName: 'company_updated',
+        useDLQ: true,
+        dlqRoutingKey: 'dlq.company_updated',
+      },
+    )();
   }
 }
