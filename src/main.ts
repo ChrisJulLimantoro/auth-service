@@ -12,6 +12,8 @@ async function bootstrap() {
     },
   );
 
+  //
+
   // Microservice 2 - RabbitMQ
   const rabbitMQService =
     await NestFactory.createMicroservice<MicroserviceOptions>(AppModule, {

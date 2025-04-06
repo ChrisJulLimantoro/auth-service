@@ -1,12 +1,38 @@
 import { Controller } from '@nestjs/common';
-import { EventPattern, Payload, Ctx, RmqContext } from '@nestjs/microservices';
+import {
+  EventPattern,
+  Payload,
+  Ctx,
+  RmqContext,
+  MessagePattern,
+} from '@nestjs/microservices';
 import { CompanyService } from './company.service';
 import { Exempt } from 'src/decorator/exempt.decorator';
 import { RmqAckHelper } from 'src/helper/rmq-ack.helper'; // Import the retry handler
+import { CustomResponse } from 'src/exception/dto/custom-response.dto';
 
 @Controller('company')
 export class CompanyController {
   constructor(private readonly companyService: CompanyService) {}
+
+  private async handleEvent(
+    context: RmqContext,
+    callback: () => Promise<{ success: boolean }>,
+    errorMessage: string,
+  ) {
+    const channel = context.getChannelRef();
+    const originalMsg = context.getMessage();
+
+    try {
+      const response = await callback();
+      if (response.success) {
+        channel.ack(originalMsg);
+      }
+    } catch (error) {
+      console.error(errorMessage, error.stack);
+      channel.nack(originalMsg);
+    }
+  }
 
   @EventPattern({ cmd: 'company_created' })
   @Exempt()
@@ -72,5 +98,22 @@ export class CompanyController {
         dlqRoutingKey: 'dlq.company_updated',
       },
     )();
+  }
+
+  @MessagePattern({ cmd: 'get:company/*' })
+  @Exempt()
+  async findOne(@Payload() data: any) {
+    const results = await this.companyService.findOne(data.params.id);
+    return CustomResponse.success('Company sync successful', results);
+  }
+
+  @EventPattern({ cmd: 'company_sync' })
+  @Exempt()
+  async companySync(@Payload() data: any, @Ctx() context: RmqContext) {
+    await this.handleEvent(
+      context,
+      () => this.companyService.sync(data),
+      'Error processing company_sync event',
+    );
   }
 }
