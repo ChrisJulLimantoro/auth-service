@@ -14,6 +14,7 @@ export class AuthService {
     private readonly storeRepository: StoreRepository,
   ) {}
   async login(data: LoginRequest) {
+    console.log('Login request received', data);
     this.validation.validate(data, LoginRequest.schema());
     const user = await this.repository.authenticateEmail(data.email);
     if (!user) {
@@ -30,7 +31,6 @@ export class AuthService {
       companies = await this.repository.getOwnedCompany(user.id);
     } else {
       const responses = await this.repository.getAuthorizedStore(user.id);
-      console.log('responses', responses);
       for (const response of responses) {
         console.log('hello');
         if (response.store) {
@@ -69,21 +69,13 @@ export class AuthService {
         }
       }
     }
-    if (companies.length === 0) {
-      return CustomResponse.error(
-        'User has no associated company or store',
-        null,
-        400,
-      );
-    }
-    console.log(companies);
 
     //TODO: IMPLEMENT MORE USER DATA TO BE RETURNED
     const userData = {
       id: user.id,
       email: user.email,
-      company_id: companies[0]?.id,
-      store_id: companies[0].stores[0]?.id,
+      company_id: companies[0]?.id ?? null,
+      store_id: companies[0]?.stores[0]?.id ?? null,
       is_owner: user.is_owner,
     };
     return CustomResponse.success('Login successful', userData, 200);
@@ -93,28 +85,42 @@ export class AuthService {
     if (data.cmd === 'get:pages-available') {
       return { authorize: true };
     }
-    console.log('Authenticating user with request!', data);
+    // ONLY ALLOWS OWNER TO CREATE IF DON'T HAVE COMPANY AND STORE
     const user = data.user.id;
-    const cmd = data.cmd;
-    const companyId = data.auth.company_id;
-    const storeId = data.auth.store_id;
-    const authorize = await this.repository.authorize(
-      user,
-      cmd,
-      companyId,
-      storeId,
-    );
-    const isOwner = await this.repository.isOwner(user, companyId);
-    if (isOwner) {
-      return { authorize: authorize, owner_id: user };
-    }
 
     const currUser = await this.repository.findOne(user);
     if (!currUser) {
       return { authorized: false };
     }
 
-    return { authorize: authorize, owner_id: currUser.owner_id };
+    const cmd = data.cmd;
+
+    // Allow to create company for owner [USE CASE for FIRST TIMER]
+    if (currUser.is_owner && cmd === 'post:company') {
+      return { authorize: true, owner_id: currUser.id };
+    }
+    // Allow to create store for owner [USE CASE for FIRST TIMER]
+    if (
+      currUser.is_owner &&
+      cmd === 'post:store' &&
+      data.auth.company_id != null
+    ) {
+      return { authorize: true, owner_id: currUser.id };
+    }
+
+    const companyId = data.auth.company_id ?? '';
+    const storeId = data.auth.store_id ?? '';
+    const authorize = await this.repository.authorize(
+      user,
+      cmd,
+      companyId,
+      storeId,
+    );
+
+    return {
+      authorize: authorize,
+      owner_id: currUser.is_owner ? currUser.id : currUser.owner_id,
+    };
   }
 
   async getPagesAvailable(data: any) {
