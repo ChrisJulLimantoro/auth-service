@@ -34,7 +34,6 @@ export class AuthController {
   })
   async getAuthorizedStore(@Payload() data: any) {
     const id = data.params.user.id;
-    console.log(id);
     return this.authService.getAuthorizedStore(id);
   }
 }
