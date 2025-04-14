@@ -14,7 +14,7 @@ export class RoleController {
   @Describe({ description: 'Create a new role', fe: ['settings/role:add'] })
   async create(@Payload() data: any): Promise<CustomResponse> {
     const create = data.body;
-    return this.service.create(create);
+    return this.service.create(create, data.params.user.id);
   }
 
   @MessagePattern({ cmd: 'get:role-user/*' })
@@ -65,7 +65,7 @@ export class RoleController {
   async update(@Payload() data: any): Promise<CustomResponse> {
     const param = data.params;
     const body = data.body;
-    return this.service.update(param.id, body);
+    return this.service.update(param.id, body, param.user.id);
   }
 
   @MessagePattern({ cmd: 'delete:role/*' })
@@ -75,7 +75,7 @@ export class RoleController {
   })
   async delete(@Payload() data: any): Promise<CustomResponse> {
     const param = data.params;
-    return this.service.delete(param.id);
+    return this.service.delete(param.id, param.user.id);
   }
 
   @MessagePattern({ cmd: 'post:mass-assign-role' })
@@ -85,6 +85,6 @@ export class RoleController {
   })
   async massAssignRole(@Payload() data: any): Promise<CustomResponse> {
     const body = data.body;
-    return this.service.massAssignRole(body);
+    return this.service.massAssignRole(body, data.params.user.id);
   }
 }

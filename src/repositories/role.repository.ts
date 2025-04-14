@@ -30,20 +30,34 @@ export class RoleRepository extends BaseRepository<any> {
     });
   }
 
-  async assignRoleToUser(userId: string, roleId: string) {
-    return this.prisma.userRole.create({
+  async assignRoleToUser(userId: string, roleId: string, created_by?: string) {
+    const created = await this.prisma.userRole.create({
       data: {
         user_id: userId,
         role_id: roleId,
       },
     });
+    await this.actionLog('user_role', created.id, 'CREATE', null, created_by);
+    return created;
   }
 
-  async unassignRoleToUser(userId: string, roleId: string) {
-    return this.prisma.userRole.deleteMany({
+  async unassignRoleToUser(
+    userId: string,
+    roleId: string,
+    created_by?: string,
+  ) {
+    const before = await this.prisma.userRole.findMany({
       where: {
         AND: [{ user_id: userId }, { role_id: roleId }],
       },
     });
+    // Log the action before deletion
+    await this.actionLog('user_role', before[0].id, 'DELETE', null, created_by);
+    const deleted = await this.prisma.userRole.deleteMany({
+      where: {
+        AND: [{ user_id: userId }, { role_id: roleId }],
+      },
+    });
+    return deleted;
   }
 }

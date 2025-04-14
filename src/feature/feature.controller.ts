@@ -86,6 +86,6 @@ export class FeatureController {
   })
   massAssignFeature(@Payload() data: any) {
     const body = data.body;
-    return this.service.massAssignFeature(body);
+    return this.service.massAssignFeature(body, data.params.user.id);
   }
 }

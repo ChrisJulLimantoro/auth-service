@@ -43,37 +43,71 @@ export class PageRepository extends BaseRepository<any> {
     );
   }
 
-  async assignPageToFeature(pageId: string, featureId: string) {
-    return this.prisma.pageFeature.create({
+  async assignPageToFeature(
+    pageId: string,
+    featureId: string,
+    user_id?: string,
+  ) {
+    const created = await this.prisma.pageFeature.create({
       data: {
         page_id: pageId,
         feature_id: featureId,
       },
     });
+    await this.actionLog('page_feature', created.id, 'CREATE', null, user_id);
+    return created;
   }
 
-  async unAssignPageToFeature(pageId: string, featureId: string) {
-    return this.prisma.pageFeature.deleteMany({
+  async unAssignPageToFeature(
+    pageId: string,
+    featureId: string,
+    user_id?: string,
+  ) {
+    const before = await this.prisma.pageFeature.findMany({
       where: {
         AND: [{ page_id: pageId }, { feature_id: featureId }],
       },
     });
+    const deleted = await this.prisma.pageFeature.deleteMany({
+      where: {
+        AND: [{ page_id: pageId }, { feature_id: featureId }],
+      },
+    });
+    await Promise.all(
+      before.map((item) =>
+        this.actionLog('page_feature', item.id, 'DELETE', item, user_id),
+      ),
+    );
+    return deleted;
   }
 
-  async assignPageToRole(pageId: string, roleId: string) {
-    return this.prisma.pageRole.create({
+  async assignPageToRole(pageId: string, roleId: string, user_id?: string) {
+    const created = await this.prisma.pageRole.create({
       data: {
         page_id: pageId,
         role_id: roleId,
       },
     });
+    await this.actionLog('page_role', created.id, 'CREATE', null, user_id);
+    return created;
   }
 
-  async unassignPageToRole(pageId: string, roleId: string) {
-    return this.prisma.pageRole.deleteMany({
+  async unassignPageToRole(pageId: string, roleId: string, user_id?: string) {
+    const before = await this.prisma.pageRole.findMany({
       where: {
         AND: [{ page_id: pageId }, { role_id: roleId }],
       },
     });
+    const deleted = await this.prisma.pageRole.deleteMany({
+      where: {
+        AND: [{ page_id: pageId }, { role_id: roleId }],
+      },
+    });
+    await Promise.all(
+      before.map((item) =>
+        this.actionLog('page_role', item.id, 'DELETE', item, user_id),
+      ),
+    );
+    return deleted;
   }
 }

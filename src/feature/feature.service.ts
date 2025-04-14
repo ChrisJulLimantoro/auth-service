@@ -103,25 +103,27 @@ export class FeatureService extends BaseService {
     return CustomResponse.success('Feature Synced', null, 200);
   }
 
-  async assignFeature(body: any) {
+  async assignFeature(body: any, user_id?: string) {
     const { role_id, feature_id } = body;
     const created = await this.repository.assignFeatureToRole(
       role_id,
       feature_id,
+      user_id,
     );
     return CustomResponse.success('Feature assigned to role', created, 200);
   }
 
-  async unassignFeature(body: any) {
+  async unassignFeature(body: any, user_id?: string) {
     const { role_id, feature_id } = body;
     const deleted = await this.repository.unassignFeatureToRole(
       role_id,
       feature_id,
+      user_id,
     );
     return CustomResponse.success('Feature unassigned to role', deleted, 200);
   }
 
-  async massAssignFeature(body: any) {
+  async massAssignFeature(body: any, user_id?: string) {
     const { role_id, page_ids } = body;
     const oldPageData = await this.pageRepository.getByRole(role_id);
     const oldFeatureData = await this.repository.getByRole(role_id);
@@ -132,7 +134,7 @@ export class FeatureService extends BaseService {
     for (const page_id of page_ids) {
       // if the page is not assigned to the role, assign it
       if (!pages.includes(page_id)) {
-        await this.pageRepository.assignPageToRole(page_id, role_id);
+        await this.pageRepository.assignPageToRole(page_id, role_id, user_id);
         pages.push(page_id);
         add++;
       }
@@ -143,6 +145,7 @@ export class FeatureService extends BaseService {
         const delSuc = await this.pageRepository.unassignPageToRole(
           page.page_id,
           role_id,
+          user_id,
         );
         if (delSuc.count > 0) del++;
       }
@@ -156,7 +159,11 @@ export class FeatureService extends BaseService {
       for (const f of feats) {
         // Check if the feature is already assigned to the role
         if (!features.includes(f.feature_id)) {
-          await this.repository.assignFeatureToRole(role_id, f.feature_id);
+          await this.repository.assignFeatureToRole(
+            role_id,
+            f.feature_id,
+            user_id,
+          );
           features.push(f.feature_id);
         }
         // add to newFeatures
@@ -171,6 +178,7 @@ export class FeatureService extends BaseService {
         await this.repository.unassignFeatureToRole(
           role_id,
           feature.feature_id,
+          user_id,
         );
       }
     }

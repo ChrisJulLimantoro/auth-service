@@ -27,20 +27,40 @@ export class FeatureRepository extends BaseRepository<any> {
   }
 
   // function to assign feature to role
-  async assignFeatureToRole(roleId: string, featureId: string) {
-    return this.prisma.featureRole.create({
+  async assignFeatureToRole(
+    roleId: string,
+    featureId: string,
+    user_id?: string,
+  ) {
+    const created = await this.prisma.featureRole.create({
       data: {
         role_id: roleId,
         feature_id: featureId,
       },
     });
+    await this.actionLog('feature_role', created.id, 'CREATE', null, user_id);
   }
 
-  async unassignFeatureToRole(roleId: string, featureId: string) {
-    return this.prisma.featureRole.deleteMany({
+  async unassignFeatureToRole(
+    roleId: string,
+    featureId: string,
+    user_id?: string,
+  ) {
+    const before = await this.prisma.featureRole.findMany({
       where: {
         AND: [{ role_id: roleId }, { feature_id: featureId }],
       },
     });
+    const deleted = await this.prisma.featureRole.deleteMany({
+      where: {
+        AND: [{ role_id: roleId }, { feature_id: featureId }],
+      },
+    });
+    await Promise.all(
+      before.map((item) =>
+        this.actionLog('feature_role', item.id, 'DELETE', item, user_id),
+      ),
+    );
+    return deleted;
   }
 }

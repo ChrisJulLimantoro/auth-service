@@ -12,10 +12,12 @@ export class BaseRepository<T> {
   ) {}
 
   // Create a new record with possible relations
-  async create(data: any): Promise<T> {
-    return this.prisma[this.modelName].create({
+  async create(data: any, user_id?: string): Promise<T> {
+    const created = await this.prisma[this.modelName].create({
       data,
     });
+    await this.actionLog(this.modelName, created.id, 'CREATE', null, user_id);
+    return created;
   }
 
   // Get all records with possible relations and filter criteria
@@ -45,16 +47,23 @@ export class BaseRepository<T> {
   }
 
   // Update a record with possible relations
-  async update(id: string, data: any): Promise<T> {
+  async update(id: string, data: any, user_id?: string): Promise<T> {
     data.updated_at = new Date();
-    return this.prisma[this.modelName].update({
+    const before = await this.prisma[this.modelName].findUnique({
+      where: this.isSoftDelete ? { id, deleted_at: null } : { id },
+    });
+    const updated = await this.prisma[this.modelName].update({
       where: this.isSoftDelete ? { id, deleted_at: null } : { id },
       data,
     });
+    const diff = this.getDiff(before, updated);
+    await this.actionLog(this.modelName, id, 'UPDATE', diff, user_id);
+    return updated;
   }
 
   // Delete a record by ID
-  async delete(id: string): Promise<T> {
+  async delete(id: string, user_id?: string): Promise<T> {
+    await this.actionLog(this.modelName, id, 'DELETE', null, user_id);
     if (this.isSoftDelete) {
       return this.prisma[this.modelName].update({
         where: { id },
@@ -67,7 +76,8 @@ export class BaseRepository<T> {
   }
 
   // Restore a soft deleted record
-  async restore(id: string): Promise<T> {
+  async restore(id: string, user_id?: string): Promise<T> {
+    await this.actionLog(this.modelName, id, 'RESTORE', null, user_id);
     return this.prisma[this.modelName].update({
       where: { id },
       data: { deleted_at: null, updated_at: new Date() },
@@ -81,6 +91,42 @@ export class BaseRepository<T> {
     });
   }
 
+  // Add logging
+  getDiff(
+    before: Record<string, any>,
+    after: Record<string, any>,
+    excludeKeys: string[] = ['id', 'updatedAt'],
+  ) {
+    const diff: Record<string, { from: any; to: any }> = {};
+    for (const key in after) {
+      if (excludeKeys.includes(key)) continue;
+      if (before[key] !== after[key]) {
+        diff[key] = { from: before[key], to: after[key] };
+      }
+    }
+    return diff;
+  }
+
+  async actionLog(
+    resource: string,
+    resource_id: string,
+    event: string,
+    diff: any,
+    user_id: string,
+  ) {
+    const log = {
+      resource,
+      resource_id,
+      event,
+      diff: JSON.stringify(diff),
+      user_id,
+    };
+
+    return this.prisma.actionLog.create({
+      data: log,
+    });
+  }
+
   async sync(data: any[]) {
     const datas = await Promise.all(
       data.map((d) =>
@@ -88,8 +134,8 @@ export class BaseRepository<T> {
           where: { id: d.id },
           update: d,
           create: d,
-        })
-      )
+        }),
+      ),
     );
     return datas;
   }

@@ -28,11 +28,11 @@ export class RoleService extends BaseService {
     return new UpdateRoleRequest(data);
   }
 
-  async create(data: any): Promise<CustomResponse> {
+  async create(data: any, user_id?: string): Promise<CustomResponse> {
     // Call the parent create method
     if (data.store_id == '') {
       data.store_id = null;
-      return super.create(data);
+      return super.create(data, user_id);
     }
 
     var count = 0;
@@ -41,7 +41,7 @@ export class RoleService extends BaseService {
       const formData = { ...data, store_id: store };
       const createData = this.transformCreateData(formData);
       const validated = this.validation.validate(createData, this.createSchema);
-      const created = await this.roleRepository.create(validated);
+      const created = await this.roleRepository.create(validated, user_id);
       if (created) count++;
     }
     return CustomResponse.success(
@@ -51,11 +51,15 @@ export class RoleService extends BaseService {
     );
   }
 
-  async update(id: string, data: any): Promise<CustomResponse> {
+  async update(
+    id: string,
+    data: any,
+    user_id?: string,
+  ): Promise<CustomResponse> {
     if (data.store_id == '') {
       data.store_id = null;
     }
-    return super.update(id, data);
+    return super.update(id, data, user_id);
   }
 
   async getRolesByUser(user_id: string) {
@@ -68,25 +72,27 @@ export class RoleService extends BaseService {
     return CustomResponse.success('Users found', users, 200);
   }
 
-  async assignRole(body: any) {
+  async assignRole(body: any, created_by?: string) {
     const { user_id, role_id } = body;
     const created = await this.roleRepository.assignRoleToUser(
       user_id,
       role_id,
+      created_by,
     );
     return CustomResponse.success('Role assigned to user', created, 200);
   }
 
-  async unassignRole(body: any) {
+  async unassignRole(body: any, created_by?: string) {
     const { user_id, role_id } = body;
     const deleted = await this.roleRepository.unassignRoleToUser(
       user_id,
       role_id,
+      created_by,
     );
     return CustomResponse.success('Role unassigned to user', deleted, 200);
   }
 
-  async massAssignRole(body: any) {
+  async massAssignRole(body: any, created_by?: string) {
     const { selecting, user_ids, role_ids } = body;
     var countCreated = 0;
     var countDeleted = 0;
@@ -98,6 +104,7 @@ export class RoleService extends BaseService {
         const created = await this.roleRepository.assignRoleToUser(
           user_ids[0],
           role_id,
+          created_by,
         );
         if (created) countCreated++;
       }
@@ -106,6 +113,7 @@ export class RoleService extends BaseService {
         const deleted = await this.roleRepository.unassignRoleToUser(
           user_ids[0],
           role.role_id,
+          created_by,
         );
         if (deleted) countDeleted++;
       }
@@ -117,6 +125,7 @@ export class RoleService extends BaseService {
         const created = await this.roleRepository.assignRoleToUser(
           user_id,
           role_ids[0],
+          created_by,
         );
         if (created) countCreated++;
       }
@@ -125,6 +134,7 @@ export class RoleService extends BaseService {
         const deleted = await this.roleRepository.unassignRoleToUser(
           user.user_id,
           role_ids[0],
+          created_by,
         );
         if (deleted) countDeleted++;
       }

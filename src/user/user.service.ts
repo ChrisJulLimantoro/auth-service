@@ -110,11 +110,13 @@ export class UserService {
 
     const password = await bcrypt.hash(data.new_password, 10);
 
-    const res = await this.repository.update(id, {
-      password: password,
-    });
-
-    console.log(res);
+    const res = await this.repository.update(
+      id,
+      {
+        password: password,
+      },
+      id,
+    );
 
     return CustomResponse.success('Password changed!', res, 200);
   }
