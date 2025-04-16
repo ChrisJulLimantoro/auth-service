@@ -10,7 +10,7 @@ async function bootstrap() {
     AppModule,
     {
       transport: Transport.TCP,
-      options: { port: 3000 }, // Unique port for this TCP service
+      options: { port: Number(process.env.TCP_PORT) }, // Unique port for this TCP service
     },
   );
 
@@ -21,7 +21,7 @@ async function bootstrap() {
     await NestFactory.createMicroservice<MicroserviceOptions>(AppModule, {
       transport: Transport.RMQ,
       options: {
-        urls: ['amqp://localhost:5672'],
+        urls: [process.env.RMQ_URL || 'amqp://localhost:5672'],
         queue: queueName,
         noAck: false,
         queueOptions: { durable: true },
