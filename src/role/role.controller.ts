@@ -39,6 +39,7 @@ export class RoleController {
     await RmqHelper.handleMessageProcessing(
       context,
       async () => {
+        console.log('Captured Role Create Event', data);
         await this.service.createReplica(data);
       },
       {

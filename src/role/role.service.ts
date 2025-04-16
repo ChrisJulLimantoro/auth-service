@@ -53,6 +53,22 @@ export class RoleService extends BaseService {
     );
   }
 
+  async createReplica(data: any): Promise<CustomResponse> {
+    try {
+      for (const d of data) {
+        super.createReplica(d);
+      }
+    } catch (e) {
+      console.error('Error creating replica:', e);
+      return CustomResponse.error(
+        'Failed to create replica for roles',
+        null,
+        500,
+      );
+    }
+    return CustomResponse.success('Roles created successfully', null, 201);
+  }
+
   async update(
     id: string,
     data: any,
