@@ -33,7 +33,7 @@ export class RoleController {
   @Exempt()
   async createReplica(@Payload() data: any, @Ctx() context: RmqContext) {
     await RmqHelper.handleMessageProcessing(context, async () => {
-      await this.service.create(data);
+      await this.service.createReplica(data);
     })();
   }
 
@@ -100,7 +100,11 @@ export class RoleController {
   async updateReplica(@Payload() data: any, @Ctx() context: RmqContext) {
     console.log('Captured Role Update Event', data);
     await RmqHelper.handleMessageProcessing(context, async () => {
-      return await this.service.update(data.data.id, data.data, data.user);
+      return await this.service.updateReplica(
+        data.data.id,
+        data.data,
+        data.user,
+      );
     })();
   }
 

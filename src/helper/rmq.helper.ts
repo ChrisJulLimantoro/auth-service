@@ -84,7 +84,7 @@ export class RmqHelper {
     const conn = await amqp.connect('amqp://localhost:5672');
     const ch = await conn.createChannel();
 
-    const exchange = 'events_broadcast';
+    const exchange = process.env.RMQ_EXCHANGE || 'events_broadcast';
     const routingKey = cmd; // already formatted like 'product.created'
 
     const message = {
@@ -103,7 +103,7 @@ export class RmqHelper {
     const conn = await amqp.connect('amqp://localhost:5672');
     const ch = await conn.createChannel();
 
-    const exchange = 'events_broadcast';
+    const exchange = process.env.RMQ_EXCHANGE || 'events_broadcast';
     await ch.assertExchange(exchange, 'topic', { durable: true });
     await ch.assertQueue(queueName, { durable: true });
 
