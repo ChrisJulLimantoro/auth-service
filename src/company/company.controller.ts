@@ -55,7 +55,7 @@ export class CompanyController {
         if (!response.success) throw new Error('Company creation failed');
       },
       {
-        queueName: 'company_created',
+        queueName: 'company.created',
         useDLQ: true,
         dlqRoutingKey: 'dlq.company_created',
         prisma: this.prismaService,
@@ -75,7 +75,7 @@ export class CompanyController {
         if (!response.success) throw new Error('Company deletion failed');
       },
       {
-        queueName: 'company_deleted',
+        queueName: 'company.deleted',
         useDLQ: true,
         dlqRoutingKey: 'dlq.company_deleted',
         prisma: this.prismaService,
@@ -99,7 +99,7 @@ export class CompanyController {
         if (!response.success) throw new Error('Company update failed');
       },
       {
-        queueName: 'company_updated',
+        queueName: 'company.updated',
         useDLQ: true,
         dlqRoutingKey: 'dlq.company_updated',
         prisma: this.prismaService,

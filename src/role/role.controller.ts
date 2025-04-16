@@ -13,10 +13,14 @@ import { CustomResponse } from 'src/exception/dto/custom-response.dto';
 import { Describe } from 'src/decorator/describe.decorator';
 import { Exempt } from 'src/decorator/exempt.decorator';
 import { RmqHelper } from 'src/helper/rmq.helper';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Controller('role')
 export class RoleController {
-  constructor(private readonly service: RoleService) {}
+  constructor(
+    private readonly service: RoleService,
+    private readonly prisma: PrismaService,
+  ) {}
 
   @MessagePattern({ cmd: 'post:role' })
   @Describe({ description: 'Create a new role', fe: ['settings/role:add'] })
@@ -32,9 +36,18 @@ export class RoleController {
   @EventPattern('role.created')
   @Exempt()
   async createReplica(@Payload() data: any, @Ctx() context: RmqContext) {
-    await RmqHelper.handleMessageProcessing(context, async () => {
-      await this.service.create(data);
-    })();
+    await RmqHelper.handleMessageProcessing(
+      context,
+      async () => {
+        await this.service.createReplica(data);
+      },
+      {
+        queueName: 'role.deleted',
+        useDLQ: true,
+        dlqRoutingKey: 'dlq.role.deleted',
+        prisma: this.prisma,
+      },
+    )();
   }
 
   @MessagePattern({ cmd: 'get:role-user/*' })
@@ -99,9 +112,22 @@ export class RoleController {
   @Exempt()
   async updateReplica(@Payload() data: any, @Ctx() context: RmqContext) {
     console.log('Captured Role Update Event', data);
-    await RmqHelper.handleMessageProcessing(context, async () => {
-      return await this.service.update(data.data.id, data.data, data.user);
-    })();
+    await RmqHelper.handleMessageProcessing(
+      context,
+      async () => {
+        return await this.service.updateReplica(
+          data.data.id,
+          data.data,
+          data.user,
+        );
+      },
+      {
+        queueName: 'role.deleted',
+        useDLQ: true,
+        dlqRoutingKey: 'dlq.role.deleted',
+        prisma: this.prisma,
+      },
+    )();
   }
 
   @MessagePattern({ cmd: 'delete:role/*' })
@@ -125,9 +151,18 @@ export class RoleController {
   @Exempt()
   async deleteReplica(@Payload() data: any, @Ctx() context: RmqContext) {
     console.log('Captured Role Delete Event', data);
-    await RmqHelper.handleMessageProcessing(context, async () => {
-      return await this.service.delete(data.data, data.user);
-    })();
+    await RmqHelper.handleMessageProcessing(
+      context,
+      async () => {
+        return await this.service.delete(data.data, data.user);
+      },
+      {
+        queueName: 'role.deleted',
+        useDLQ: true,
+        dlqRoutingKey: 'dlq.role.deleted',
+        prisma: this.prisma,
+      },
+    )();
   }
 
   @MessagePattern({ cmd: 'post:mass-assign-role' })

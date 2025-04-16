@@ -28,6 +28,14 @@ export abstract class BaseService {
     return CustomResponse.success('New Data Created!', newData, 201);
   }
 
+  async createReplica(data: any, user_id?: string): Promise<CustomResponse> {
+    const newData = await this.repository.create(data, user_id);
+    if (!newData) {
+      return CustomResponse.error('Failed to create new data', null, 500);
+    }
+    return CustomResponse.success('New Data Created!', newData, 201);
+  }
+
   // Find all
   async findAll(filter: Record<string, any> = null): Promise<CustomResponse> {
     const data = await this.repository.findAll(filter);
@@ -56,6 +64,20 @@ export abstract class BaseService {
     }
     const validatedData = this.validation.validate(data, this.updateSchema);
     const newData = await this.repository.update(id, validatedData, user_id);
+    return CustomResponse.success('Data Updated!', newData, 200);
+  }
+
+  // Update replica
+  async updateReplica(
+    id: string,
+    data: any,
+    user_id?: string,
+  ): Promise<CustomResponse> {
+    const oldData = await this.repository.findOne(id);
+    if (!oldData) {
+      return CustomResponse.error('Data not found', null, 404);
+    }
+    const newData = await this.repository.update(id, data, user_id);
     return CustomResponse.success('Data Updated!', newData, 200);
   }
 

@@ -126,6 +126,7 @@ export class FeatureController {
         user: data.params.user.id,
       });
     }
+    return response;
   }
 
   @EventPattern('feature.mass-assign')
