@@ -60,4 +60,41 @@ export class RoleRepository extends BaseRepository<any> {
     });
     return deleted;
   }
+
+  async assignRoleToUserReplica(data: any, created_by?: string) {
+    // check if exist or not
+    const exist = await this.prisma.userRole.findFirst({
+      where: { id: data.id },
+    });
+
+    if (exist) {
+      // log the action before update
+      await this.actionLog('user_role', exist.id, 'UPDATE', null, created_by);
+      return this.prisma.userRole.update({
+        where: { id: data.id },
+        data: data,
+      });
+    } else {
+      // log the action before create
+      await this.actionLog('user_role', data.id, 'CREATE', null, created_by);
+      return this.prisma.userRole.create({
+        data: data,
+      });
+    }
+  }
+
+  async unassignRoleToUserReplica(data: any, created_by?: string) {
+    // Find the record to be deleted
+    const record = await this.prisma.userRole.findFirst({
+      where: { id: data.id },
+    });
+    if (record) {
+      // Log the action before deletion
+      await this.actionLog('user_role', record.id, 'DELETE', null, created_by);
+      return this.prisma.userRole.delete({
+        where: { id: data.id },
+      });
+    }
+    return null; // or handle the case where the record doesn't exist
+  }
 }

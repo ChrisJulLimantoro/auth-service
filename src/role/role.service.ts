@@ -5,6 +5,7 @@ import { BaseService } from '../base.service';
 import { CreateRoleRequest } from './dto/create-role-request.dto';
 import { CustomResponse } from 'src/exception/dto/custom-response.dto';
 import { UpdateRoleRequest } from './dto/update-role-request.dto';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class RoleService extends BaseService {
@@ -16,6 +17,7 @@ export class RoleService extends BaseService {
   constructor(
     private readonly roleRepository: RoleRepository, // Inject RoleRepository
     protected readonly validation: ValidationService,
+    private readonly prisma: PrismaService,
   ) {
     super(validation); // Pass the validation service to the parent constructor
   }
@@ -191,6 +193,27 @@ export class RoleService extends BaseService {
     console.log(data);
     var createdData = data['created'];
     var deletedData = data['deleted'];
+
+    try {
+      // sync process
+      for (const created of createdData) {
+        await this.roleRepository.assignRoleToUserReplica(created, created_by);
+      }
+
+      for (const deleted of deletedData) {
+        await this.roleRepository.unassignRoleToUserReplica(
+          deleted,
+          created_by,
+        );
+      }
+    } catch (e) {
+      console.error('Error creating replica:', e);
+      return CustomResponse.error(
+        'Failed to create replica for roles',
+        null,
+        500,
+      );
+    }
 
     return CustomResponse.success('Data replicated successfully', null, 200);
   }
