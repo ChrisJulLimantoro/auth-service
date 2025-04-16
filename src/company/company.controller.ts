@@ -10,10 +10,14 @@ import { CompanyService } from './company.service';
 import { Exempt } from 'src/decorator/exempt.decorator';
 import { RmqHelper } from 'src/helper/rmq.helper'; // Import the retry handler
 import { CustomResponse } from 'src/exception/dto/custom-response.dto';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Controller('company')
 export class CompanyController {
-  constructor(private readonly companyService: CompanyService) {}
+  constructor(
+    private readonly companyService: CompanyService,
+    private readonly prismaService: PrismaService,
+  ) {}
 
   private async handleEvent(
     context: RmqContext,
@@ -54,6 +58,7 @@ export class CompanyController {
         queueName: 'company_created',
         useDLQ: true,
         dlqRoutingKey: 'dlq.company_created',
+        prisma: this.prismaService,
       },
     )();
   }
@@ -73,6 +78,7 @@ export class CompanyController {
         queueName: 'company_deleted',
         useDLQ: true,
         dlqRoutingKey: 'dlq.company_deleted',
+        prisma: this.prismaService,
       },
     )();
   }
@@ -96,6 +102,7 @@ export class CompanyController {
         queueName: 'company_updated',
         useDLQ: true,
         dlqRoutingKey: 'dlq.company_updated',
+        prisma: this.prismaService,
       },
     )();
   }
