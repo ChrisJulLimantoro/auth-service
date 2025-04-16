@@ -25,6 +25,14 @@ export class RmqHelper {
       const retryCount = headers['x-retry-count']
         ? headers['x-retry-count'] + 1
         : 1;
+
+      // Check if the message received is from ownselfs
+      if (headers['origin-queue'] === this.QUEUE_NAME) {
+        console.log('Message already processed, skipping...');
+        channel.ack(originalMsg);
+        return;
+      }
+
       try {
         await callback();
         channel.ack(originalMsg);
@@ -81,7 +89,9 @@ export class RmqHelper {
   }
 
   static async publishEvent(cmd: string, payload: any) {
-    const conn = await amqp.connect('amqp://localhost:5672');
+    const conn = await amqp.connect(
+      process.env.RMQ_URL || 'amqp://localhost:5672',
+    );
     const ch = await conn.createChannel();
 
     const exchange = process.env.RMQ_EXCHANGE || 'events_broadcast';
@@ -93,14 +103,21 @@ export class RmqHelper {
     };
 
     await ch.assertExchange(exchange, 'topic', { durable: true });
-    ch.publish(exchange, routingKey, Buffer.from(JSON.stringify(message)));
+    ch.publish(exchange, routingKey, Buffer.from(JSON.stringify(message)), {
+      headers: {
+        'x-retry-count': 0,
+        'origin-queue': this.QUEUE_NAME,
+      },
+    });
 
     await ch.close();
     await conn.close();
   }
 
   static async setupSubscriptionQueue(queueName: string, topics: string[]) {
-    const conn = await amqp.connect('amqp://localhost:5672');
+    const conn = await amqp.connect(
+      process.env.RMQ_URL || 'amqp://localhost:5672',
+    );
     const ch = await conn.createChannel();
 
     const exchange = process.env.RMQ_EXCHANGE || 'events_broadcast';

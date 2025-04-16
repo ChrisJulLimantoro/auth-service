@@ -35,18 +35,20 @@ export class RoleService extends BaseService {
       return super.create(data, user_id);
     }
 
-    var count = 0;
+    var createdData = [];
     const stores = data.store_id;
     for (const store of stores) {
       const formData = { ...data, store_id: store };
       const createData = this.transformCreateData(formData);
       const validated = this.validation.validate(createData, this.createSchema);
       const created = await this.roleRepository.create(validated, user_id);
-      if (created) count++;
+      if (created) {
+        createdData.push(created);
+      }
     }
     return CustomResponse.success(
-      `${count} roles created successfully`,
-      null,
+      `${createdData.length} roles created successfully`,
+      createdData,
       201,
     );
   }
