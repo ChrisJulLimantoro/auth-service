@@ -123,7 +123,7 @@ export class FeatureController {
     if (response.success) {
       RmqHelper.publishEvent('feature.mass-assign', {
         body,
-        user_id: data.params.user.id,
+        user: data.params.user.id,
       });
     }
   }
@@ -140,7 +140,7 @@ export class FeatureController {
       async () => {
         const response = await this.service.massAssignFeature(
           data.body,
-          data.user_id,
+          data.user,
         );
         if (!response.success) {
           throw new Error('Failed to assign feature');
