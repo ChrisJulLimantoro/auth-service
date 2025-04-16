@@ -58,7 +58,7 @@ export class RoleRepository extends BaseRepository<any> {
         AND: [{ user_id: userId }, { role_id: roleId }],
       },
     });
-    return deleted;
+    return before[0];
   }
 
   async assignRoleToUserReplica(data: any, created_by?: string) {
