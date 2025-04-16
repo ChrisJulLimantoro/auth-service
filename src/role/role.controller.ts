@@ -2,9 +2,17 @@ import { Controller } from '@nestjs/common';
 import { RoleService } from './role.service';
 import { CreateRoleRequest } from './dto/create-role-request.dto';
 import { Post, Body, Res } from '@nestjs/common';
-import { MessagePattern, Payload } from '@nestjs/microservices';
+import {
+  Ctx,
+  EventPattern,
+  MessagePattern,
+  Payload,
+  RmqContext,
+} from '@nestjs/microservices';
 import { CustomResponse } from 'src/exception/dto/custom-response.dto';
 import { Describe } from 'src/decorator/describe.decorator';
+import { Exempt } from 'src/decorator/exempt.decorator';
+import { RmqHelper } from 'src/helper/rmq.helper';
 
 @Controller('role')
 export class RoleController {
@@ -14,7 +22,19 @@ export class RoleController {
   @Describe({ description: 'Create a new role', fe: ['settings/role:add'] })
   async create(@Payload() data: any): Promise<CustomResponse> {
     const create = data.body;
-    return this.service.create(create, data.params.user.id);
+    const response = await this.service.create(create, data.params.user.id);
+    if (response.success) {
+      RmqHelper.publishEvent('role.created', response.data);
+    }
+    return response;
+  }
+
+  @EventPattern('role.created')
+  @Exempt()
+  async createReplica(@Payload() data: any, @Ctx() context: RmqContext) {
+    await RmqHelper.handleMessageProcessing(context, async () => {
+      await this.service.create(data);
+    })();
   }
 
   @MessagePattern({ cmd: 'get:role-user/*' })
@@ -65,7 +85,23 @@ export class RoleController {
   async update(@Payload() data: any): Promise<CustomResponse> {
     const param = data.params;
     const body = data.body;
-    return this.service.update(param.id, body, param.user.id);
+    const response = await this.service.update(param.id, body, param.user.id);
+    if (response.success) {
+      RmqHelper.publishEvent('role.updated', {
+        data: response.data,
+        user: param.user.id,
+      });
+    }
+    return response;
+  }
+
+  @EventPattern('role.updated')
+  @Exempt()
+  async updateReplica(@Payload() data: any, @Ctx() context: RmqContext) {
+    console.log('Captured Role Update Event', data);
+    await RmqHelper.handleMessageProcessing(context, async () => {
+      return await this.service.update(data.data.id, data.data, data.user);
+    })();
   }
 
   @MessagePattern({ cmd: 'delete:role/*' })
@@ -75,7 +111,23 @@ export class RoleController {
   })
   async delete(@Payload() data: any): Promise<CustomResponse> {
     const param = data.params;
-    return this.service.delete(param.id, param.user.id);
+    const response = await this.service.delete(param.id, param.user.id);
+    if (response.success) {
+      RmqHelper.publishEvent('role.deleted', {
+        data: response.data.id,
+        user: param.user.id,
+      });
+    }
+    return response;
+  }
+
+  @EventPattern('role.deleted')
+  @Exempt()
+  async deleteReplica(@Payload() data: any, @Ctx() context: RmqContext) {
+    console.log('Captured Role Delete Event', data);
+    await RmqHelper.handleMessageProcessing(context, async () => {
+      return await this.service.delete(data.data, data.user);
+    })();
   }
 
   @MessagePattern({ cmd: 'post:mass-assign-role' })
@@ -85,6 +137,31 @@ export class RoleController {
   })
   async massAssignRole(@Payload() data: any): Promise<CustomResponse> {
     const body = data.body;
-    return this.service.massAssignRole(body, data.params.user.id);
+    const response = await this.service.massAssignRole(
+      body,
+      data.params.user.id,
+    );
+    if (response.success) {
+      RmqHelper.publishEvent('role.mass-assign', {
+        body,
+        user: data.params.user.id,
+      });
+    }
+    return response;
+  }
+
+  @EventPattern('role.mass-assign')
+  @Exempt()
+  async massAssignRoleReplica(
+    @Payload() data: any,
+    @Ctx() context: RmqContext,
+  ) {
+    console.log('Captured Role Mass Assign Event', data);
+    await RmqHelper.handleMessageProcessing(context, async () => {
+      const response = await this.service.massAssignRole(data.body, data.user);
+      if (!response.success) {
+        throw new Error('Failed to assign role');
+      }
+    });
   }
 }
