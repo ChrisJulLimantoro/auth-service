@@ -179,7 +179,7 @@ export class RoleController {
     );
     if (response.success) {
       RmqHelper.publishEvent('role.mass-assign', {
-        body,
+        data: response.data,
         user: data.params.user.id,
       });
     }
@@ -194,7 +194,10 @@ export class RoleController {
   ) {
     console.log('Captured Role Mass Assign Event', data);
     await RmqHelper.handleMessageProcessing(context, async () => {
-      const response = await this.service.massAssignRole(data.body, data.user);
+      const response = await this.service.massAssignRoleReplica(
+        data.data,
+        data.user,
+      );
       if (!response.success) {
         throw new Error('Failed to assign role');
       }

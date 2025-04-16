@@ -121,8 +121,8 @@ export class RoleService extends BaseService {
 
   async massAssignRole(body: any, created_by?: string) {
     const { selecting, user_ids, role_ids } = body;
-    var countCreated = 0;
-    var countDeleted = 0;
+    var createdData = [];
+    var deletedData = [];
     if (selecting == 1) {
       const excisting = await this.roleRepository.getRolesByUser(user_ids[0]);
       for (const role_id of role_ids) {
@@ -133,7 +133,9 @@ export class RoleService extends BaseService {
           role_id,
           created_by,
         );
-        if (created) countCreated++;
+        if (created) {
+          createdData.push(created);
+        }
       }
       for (const role of excisting) {
         if (role_ids.some((role_id) => role.role_id == role_id)) continue;
@@ -142,7 +144,9 @@ export class RoleService extends BaseService {
           role.role_id,
           created_by,
         );
-        if (deleted) countDeleted++;
+        if (deleted) {
+          deletedData.push(deleted);
+        }
       }
     } else {
       const excisting = await this.roleRepository.getUsersByRole(role_ids[0]);
@@ -154,7 +158,9 @@ export class RoleService extends BaseService {
           role_ids[0],
           created_by,
         );
-        if (created) countCreated++;
+        if (created) {
+          createdData.push(created);
+        }
       }
       for (const user of excisting) {
         if (user_ids.some((user_id) => user.user_id == user_id)) continue;
@@ -163,15 +169,29 @@ export class RoleService extends BaseService {
           role_ids[0],
           created_by,
         );
-        if (deleted) countDeleted++;
+        if (deleted) {
+          deletedData.push(deleted);
+        }
       }
     }
+
     return CustomResponse.success(
       selecting === 1
-        ? `${countCreated} roles assigned to user, ${countDeleted} roles unassigned`
-        : `${countCreated} users assigned to role, ${countDeleted} users unassigned`,
-      null,
+        ? `${createdData.length} roles assigned to user, ${deletedData.length} roles unassigned`
+        : `${createdData.length} users assigned to role, ${deletedData.length} users unassigned`,
+      {
+        created: createdData,
+        deleted: deletedData,
+      },
       200,
     );
+  }
+
+  async massAssignRoleReplica(data: any, created_by?: string) {
+    console.log(data);
+    var createdData = data['created'];
+    var deletedData = data['deleted'];
+
+    return CustomResponse.success('Data replicated successfully', null, 200);
   }
 }
