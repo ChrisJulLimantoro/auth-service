@@ -1,13 +1,10 @@
 import { RmqContext } from '@nestjs/microservices';
 import { Channel, ConsumeMessage } from 'amqplib';
-import { PrismaClient } from '@prisma/client';
 import * as amqp from 'amqplib';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 export class RmqHelper {
   private static readonly MAX_RETRIES = 3;
-
-  // ⚠️ Instantiate PrismaClient directly as singleton
-  private static prisma = new PrismaClient();
 
   static handleMessageProcessing(
     context: RmqContext,
@@ -16,6 +13,7 @@ export class RmqHelper {
       queueName?: string;
       useDLQ?: boolean;
       dlqRoutingKey?: string;
+      prisma?: PrismaService;
     } = {},
   ) {
     return async () => {
@@ -37,14 +35,20 @@ export class RmqHelper {
             `Max retries (${this.MAX_RETRIES}) reached. Storing to DB and rejecting.`,
           );
           // Save failed message using direct PrismaClient instance
-          await this.prisma.failedMessage.create({
-            data: {
-              queue: options.queueName ?? originalMsg.fields.routingKey,
-              routingKey: originalMsg.fields.routingKey,
-              payload: JSON.parse(originalMsg.content.toString()),
-              error: error.stack,
-            },
-          });
+          if (options.prisma) {
+            try {
+              await options.prisma.failedMessage.create({
+                data: {
+                  queue: options.queueName ?? originalMsg.fields.routingKey,
+                  routingKey: originalMsg.fields.routingKey,
+                  payload: JSON.parse(originalMsg.content.toString()),
+                  error: error.stack,
+                },
+              });
+            } catch (dbError) {
+              console.error('Error saving to DB:', dbError);
+            }
+          }
 
           // Optionally forward to DLQ to replay the messages
           if (options.useDLQ && options.dlqRoutingKey) {

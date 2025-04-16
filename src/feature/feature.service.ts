@@ -100,7 +100,102 @@ export class FeatureService extends BaseService {
         await this.pageRepository.delete(oldPage.id);
       }
     }
-    return CustomResponse.success('Feature Synced', null, 200);
+
+    // Getting all Data of Feature, pages, and feature pages
+    const features = await this.repository.getSync();
+
+    return CustomResponse.success('Feature Synced', features, 200);
+  }
+
+  async syncFeatureReplica(data: any[]) {
+    const features = data['features'];
+    const pages = data['pages'];
+    const featurePages = data['featurePages'];
+
+    const old = await this.repository.getSync();
+
+    // Create new feature and delete old feature
+    try {
+      for (const feature of features) {
+        const featExist = old['features'].find(
+          (oldPattern) =>
+            oldPattern.name == feature.name &&
+            oldPattern.service == feature.service,
+        );
+        if (!featExist) {
+          await this.repository.create(feature);
+        } else {
+          await this.repository.update(feature.id, feature);
+        }
+      }
+
+      for (const oldPattern of old['features']) {
+        const featExist = features.some(
+          (pattern) =>
+            pattern.name == oldPattern.name &&
+            pattern.service == oldPattern.service,
+        );
+        if (!featExist) {
+          await this.repository.delete(oldPattern.id);
+        }
+      }
+
+      // Create new page and delete old page
+      for (const page of pages) {
+        const pageExist = old['pages'].find(
+          (oldPage) =>
+            oldPage.path == page.path && oldPage.action == page.action,
+        );
+        if (!pageExist) {
+          await this.pageRepository.create(page);
+        } else {
+          await this.pageRepository.update(page.id, page);
+        }
+      }
+
+      for (const oldPage of old['pages']) {
+        const pageExist = pages.some(
+          (pattern) =>
+            pattern.path == oldPage.path && pattern.action == oldPage.action,
+        );
+        if (!pageExist) {
+          await this.pageRepository.delete(oldPage.id);
+        }
+      }
+
+      // Create new feature page and delete old feature page
+      for (const featurePage of featurePages) {
+        const pageExist = old['featurePages'].find(
+          (oldPage) =>
+            oldPage.page_id == featurePage.page_id &&
+            oldPage.feature_id == featurePage.feature_id,
+        );
+        if (!pageExist) {
+          await this.pageRepository.assignPageToFeature(
+            featurePage.page_id,
+            featurePage.feature_id,
+          );
+        }
+      }
+      for (const oldPage of old['featurePages']) {
+        const pageExist = featurePages.some(
+          (pattern) =>
+            pattern.page_id == oldPage.page_id &&
+            pattern.feature_id == oldPage.feature_id,
+        );
+        if (!pageExist) {
+          await this.pageRepository.unAssignPageToFeature(
+            oldPage.page_id,
+            oldPage.feature_id,
+          );
+        }
+      }
+
+      return CustomResponse.success('Feature Synced', null);
+    } catch (error) {
+      console.log(error);
+      return CustomResponse.error('Error Syncing Feature', error, 500);
+    }
   }
 
   async assignFeature(body: any, user_id?: string) {

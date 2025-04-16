@@ -66,7 +66,7 @@ export class FeatureController {
 
     const response = await this.service.syncFeature(patterns);
     // Send to the replica
-    RmqHelper.publishEvent('feature.sync', patterns);
+    RmqHelper.publishEvent('feature.sync', response.data);
     return response;
   }
 
@@ -78,7 +78,7 @@ export class FeatureController {
     await RmqHelper.handleMessageProcessing(
       context,
       async () => {
-        const response = await this.service.syncFeature(data);
+        const response = await this.service.syncFeatureReplica(data);
         if (!response.success) {
           throw new Error('Failed to sync feature');
         }

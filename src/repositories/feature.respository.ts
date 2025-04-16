@@ -26,6 +26,19 @@ export class FeatureRepository extends BaseRepository<any> {
     });
   }
 
+  async getSync() {
+    const features = await this.prisma.feature.findMany();
+    const pages = await this.prisma.page.findMany();
+    const featurePages = await this.prisma.pageFeature.findMany();
+
+    const data = {
+      features,
+      pages,
+      featurePages,
+    };
+    return data;
+  }
+
   // function to assign feature to role
   async assignFeatureToRole(
     roleId: string,
