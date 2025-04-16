@@ -193,14 +193,23 @@ export class RoleController {
     @Ctx() context: RmqContext,
   ) {
     console.log('Captured Role Mass Assign Event', data);
-    await RmqHelper.handleMessageProcessing(context, async () => {
-      const response = await this.service.massAssignRoleReplica(
-        data.data,
-        data.user,
-      );
-      if (!response.success) {
-        throw new Error('Failed to assign role');
-      }
-    });
+    await RmqHelper.handleMessageProcessing(
+      context,
+      async () => {
+        const response = await this.service.massAssignRoleReplica(
+          data.data,
+          data.user,
+        );
+        if (!response.success) {
+          throw new Error('Failed to assign role');
+        }
+      },
+      {
+        queueName: 'role.mass-assign',
+        useDLQ: true,
+        dlqRoutingKey: 'dlq.role.mass-assign',
+        prisma: this.prisma,
+      },
+    );
   }
 }
