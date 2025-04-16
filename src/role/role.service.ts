@@ -32,7 +32,16 @@ export class RoleService extends BaseService {
     // Call the parent create method
     if (data.store_id == '') {
       data.store_id = null;
-      return super.create(data, user_id);
+      const createData = this.transformCreateData(data);
+      const validated = this.validation.validate(createData, this.createSchema);
+      const created = await this.roleRepository.create(validated, user_id);
+      if (created) {
+        return CustomResponse.success(
+          'Role created successfully',
+          [created],
+          201,
+        );
+      }
     }
 
     var createdData = [];
