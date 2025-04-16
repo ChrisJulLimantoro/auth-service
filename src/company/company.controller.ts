@@ -8,7 +8,7 @@ import {
 } from '@nestjs/microservices';
 import { CompanyService } from './company.service';
 import { Exempt } from 'src/decorator/exempt.decorator';
-import { RmqAckHelper } from 'src/helper/rmq-ack.helper'; // Import the retry handler
+import { RmqHelper } from 'src/helper/rmq.helper'; // Import the retry handler
 import { CustomResponse } from 'src/exception/dto/custom-response.dto';
 
 @Controller('company')
@@ -44,7 +44,7 @@ export class CompanyController {
       deleted_at: data.deleted_at ? new Date(data.deleted_at) : null,
     };
 
-    await RmqAckHelper.handleMessageProcessing(
+    await RmqHelper.handleMessageProcessing(
       context,
       async () => {
         const response = await this.companyService.create(sanitizedData);
@@ -63,7 +63,7 @@ export class CompanyController {
   async companyDeleted(@Payload() data: any, @Ctx() context: RmqContext) {
     console.log('Company deleted emit received', data);
 
-    await RmqAckHelper.handleMessageProcessing(
+    await RmqHelper.handleMessageProcessing(
       context,
       async () => {
         const response = await this.companyService.delete(data);
@@ -83,7 +83,7 @@ export class CompanyController {
     console.log('Company Updated emit received', data);
     const sanitizedData = { code: data.code, name: data.name };
 
-    await RmqAckHelper.handleMessageProcessing(
+    await RmqHelper.handleMessageProcessing(
       context,
       async () => {
         const response = await this.companyService.update(
