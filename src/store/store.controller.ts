@@ -27,7 +27,7 @@ export class StoreController {
     }
   }
 
-  @EventPattern({ cmd: 'store_created' })
+  @EventPattern('store.created')
   @Exempt()
   async storeCreated(@Payload() data: any, @Ctx() context: RmqContext) {
     await RmqHelper.handleMessageProcessing(
@@ -53,7 +53,7 @@ export class StoreController {
     )();
   }
 
-  @EventPattern({ cmd: 'store_deleted' })
+  @EventPattern('store.deleted')
   @Exempt()
   async storeDeleted(@Payload() data: any, @Ctx() context: RmqContext) {
     await RmqHelper.handleMessageProcessing(
@@ -71,7 +71,7 @@ export class StoreController {
     )();
   }
 
-  @EventPattern({ cmd: 'store_updated' })
+  @EventPattern('store.updated')
   @Exempt()
   async storeUpdated(@Payload() data: any, @Ctx() context: RmqContext) {
     await RmqHelper.handleMessageProcessing(
