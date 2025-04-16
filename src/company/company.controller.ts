@@ -34,7 +34,7 @@ export class CompanyController {
     }
   }
 
-  @EventPattern({ cmd: 'company_created' })
+  @EventPattern('company.created')
   @Exempt()
   async companyCreated(@Payload() data: any, @Ctx() context: RmqContext) {
     const sanitizedData = {
@@ -58,7 +58,7 @@ export class CompanyController {
     )();
   }
 
-  @EventPattern({ cmd: 'company_deleted' })
+  @EventPattern('company.deleted')
   @Exempt()
   async companyDeleted(@Payload() data: any, @Ctx() context: RmqContext) {
     console.log('Company deleted emit received', data);
@@ -77,7 +77,7 @@ export class CompanyController {
     )();
   }
 
-  @EventPattern({ cmd: 'company_updated' })
+  @EventPattern('company.updated')
   @Exempt()
   async companyUpdated(@Payload() data: any, @Ctx() context: RmqContext) {
     console.log('Company Updated emit received', data);
