@@ -2,8 +2,8 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 import { RPCExceptionFilter } from './exception/rpc-exception.filter';
-import * as amqp from 'amqplib';
 import { RmqHelper } from './helper/rmq.helper';
+import * as dotenv from 'dotenv';
 
 async function bootstrap() {
   const tcpService = await NestFactory.createMicroservice<MicroserviceOptions>(
@@ -15,7 +15,7 @@ async function bootstrap() {
   );
 
   // RabbitMQ Setup queue name
-  const queueName = 'auth_service_queue_1';
+  const queueName = process.env.RMQ_QUEUE_NAME || 'auth_service_queue_1';
   // Microservice 2 - RabbitMQ
   const rabbitMQService =
     await NestFactory.createMicroservice<MicroserviceOptions>(AppModule, {

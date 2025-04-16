@@ -3,10 +3,14 @@ import { StoreService } from './store.service';
 import { Ctx, EventPattern, Payload, RmqContext } from '@nestjs/microservices';
 import { Exempt } from 'src/decorator/exempt.decorator';
 import { RmqHelper } from '../helper/rmq.helper'; // Update path if needed
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Controller('store')
 export class StoreController {
-  constructor(private readonly service: StoreService) {}
+  constructor(
+    private readonly service: StoreService,
+    private readonly prisma: PrismaService,
+  ) {}
 
   private async handleEvent(
     context: RmqContext,
@@ -46,9 +50,10 @@ export class StoreController {
         if (!response.success) throw new Error('Store creation failed');
       },
       {
-        queueName: 'store_created',
+        queueName: 'store.created',
         useDLQ: true,
         dlqRoutingKey: 'dlq.store_created',
+        prisma: this.prisma,
       },
     )();
   }
@@ -64,9 +69,10 @@ export class StoreController {
         if (!response.success) throw new Error('Store deletion failed');
       },
       {
-        queueName: 'store_deleted',
+        queueName: 'store.deleted',
         useDLQ: true,
         dlqRoutingKey: 'dlq.store_deleted',
+        prisma: this.prisma,
       },
     )();
   }
@@ -89,9 +95,10 @@ export class StoreController {
         if (!response.success) throw new Error('Store update failed');
       },
       {
-        queueName: 'store_updated',
+        queueName: 'store.updated',
         useDLQ: true,
         dlqRoutingKey: 'dlq.store_updated',
+        prisma: this.prisma,
       },
     )();
   }

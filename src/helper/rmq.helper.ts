@@ -5,6 +5,8 @@ import { PrismaService } from 'src/prisma/prisma.service';
 
 export class RmqHelper {
   private static readonly MAX_RETRIES = 3;
+  private static readonly QUEUE_NAME =
+    process.env.RMQ_QUEUE_NAME || 'auth_service_queue_1';
 
   static handleMessageProcessing(
     context: RmqContext,
@@ -23,7 +25,6 @@ export class RmqHelper {
       const retryCount = headers['x-retry-count']
         ? headers['x-retry-count'] + 1
         : 1;
-
       try {
         await callback();
         channel.ack(originalMsg);
@@ -65,14 +66,13 @@ export class RmqHelper {
           console.warn(
             `Retrying message (${retryCount}/${this.MAX_RETRIES})...`,
           );
-
-          channel.sendToQueue(
-            originalMsg.fields.routingKey,
-            originalMsg.content,
-            {
-              headers: { 'x-retry-count': retryCount },
-            },
-          );
+          console.log('Retrying message:', {
+            routingKey: originalMsg.fields.routingKey,
+            retryCount,
+          });
+          channel.sendToQueue(this.QUEUE_NAME, originalMsg.content, {
+            headers: { 'x-retry-count': retryCount },
+          });
 
           channel.ack(originalMsg);
         }
