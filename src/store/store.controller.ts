@@ -2,7 +2,7 @@ import { Controller } from '@nestjs/common';
 import { StoreService } from './store.service';
 import { Ctx, EventPattern, Payload, RmqContext } from '@nestjs/microservices';
 import { Exempt } from 'src/decorator/exempt.decorator';
-import { RmqAckHelper } from '../helper/rmq-ack.helper'; // Update path if needed
+import { RmqHelper } from '../helper/rmq.helper'; // Update path if needed
 
 @Controller('store')
 export class StoreController {
@@ -26,11 +26,11 @@ export class StoreController {
       channel.nack(originalMsg);
     }
   }
-  
+
   @EventPattern({ cmd: 'store_created' })
   @Exempt()
   async storeCreated(@Payload() data: any, @Ctx() context: RmqContext) {
-    await RmqAckHelper.handleMessageProcessing(
+    await RmqHelper.handleMessageProcessing(
       context,
       async () => {
         console.log('Store created emit received', data);
@@ -56,7 +56,7 @@ export class StoreController {
   @EventPattern({ cmd: 'store_deleted' })
   @Exempt()
   async storeDeleted(@Payload() data: any, @Ctx() context: RmqContext) {
-    await RmqAckHelper.handleMessageProcessing(
+    await RmqHelper.handleMessageProcessing(
       context,
       async () => {
         console.log('Store deleted emit received', data);
@@ -74,7 +74,7 @@ export class StoreController {
   @EventPattern({ cmd: 'store_updated' })
   @Exempt()
   async storeUpdated(@Payload() data: any, @Ctx() context: RmqContext) {
-    await RmqAckHelper.handleMessageProcessing(
+    await RmqHelper.handleMessageProcessing(
       context,
       async () => {
         console.log('Store Updated emit received', data);

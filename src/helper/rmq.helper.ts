@@ -1,8 +1,9 @@
 import { RmqContext } from '@nestjs/microservices';
 import { Channel, ConsumeMessage } from 'amqplib';
 import { PrismaClient } from '@prisma/client';
+import * as amqp from 'amqplib';
 
-export class RmqAckHelper {
+export class RmqHelper {
   private static readonly MAX_RETRIES = 3;
 
   // ⚠️ Instantiate PrismaClient directly as singleton
@@ -73,5 +74,40 @@ export class RmqAckHelper {
         }
       }
     };
+  }
+
+  static async publishEvent(cmd: string, payload: any) {
+    const conn = await amqp.connect('amqp://localhost:5672');
+    const ch = await conn.createChannel();
+
+    const exchange = 'events_broadcast';
+    const routingKey = cmd; // already formatted like 'product.created'
+
+    const message = {
+      pattern: cmd,
+      data: payload,
+    };
+
+    await ch.assertExchange(exchange, 'topic', { durable: true });
+    ch.publish(exchange, routingKey, Buffer.from(JSON.stringify(message)));
+
+    await ch.close();
+    await conn.close();
+  }
+
+  static async setupSubscriptionQueue(queueName: string, topics: string[]) {
+    const conn = await amqp.connect('amqp://localhost:5672');
+    const ch = await conn.createChannel();
+
+    const exchange = 'events_broadcast';
+    await ch.assertExchange(exchange, 'topic', { durable: true });
+    await ch.assertQueue(queueName, { durable: true });
+
+    for (const topic of topics) {
+      await ch.bindQueue(queueName, exchange, topic); // e.g., 'product.*'
+    }
+
+    await ch.close();
+    await conn.close();
   }
 }

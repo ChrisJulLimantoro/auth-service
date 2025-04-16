@@ -1,9 +1,17 @@
 import { Controller, Inject } from '@nestjs/common';
-import { ClientProxy, MessagePattern, Payload } from '@nestjs/microservices';
+import {
+  ClientProxy,
+  Ctx,
+  EventPattern,
+  MessagePattern,
+  Payload,
+  RmqContext,
+} from '@nestjs/microservices';
 import { MessagePatternDiscoveryService } from 'src/discovery/message-pattern-discovery.service';
 import { FeatureService } from './feature.service';
 import { Describe } from 'src/decorator/describe.decorator';
 import { Exempt } from 'src/decorator/exempt.decorator';
+import { RmqHelper } from 'src/helper/rmq.helper';
 
 @Controller('feature')
 export class FeatureController {
@@ -57,8 +65,30 @@ export class FeatureController {
     });
 
     const response = await this.service.syncFeature(patterns);
-    console.log(response.data);
+    // Send to the replica
+    RmqHelper.publishEvent('feature.sync', patterns);
     return response;
+  }
+
+  // For replica counterpart
+  @MessagePattern('feature.sync')
+  @Exempt()
+  async syncFeatureReplica(@Payload() data: any, @Ctx() context: RmqContext) {
+    console.log('Captured Feature Sync Event', data);
+    await RmqHelper.handleMessageProcessing(
+      context,
+      async () => {
+        const response = await this.service.syncFeature(data);
+        if (!response.success) {
+          throw new Error('Failed to sync feature');
+        }
+      },
+      {
+        queueName: 'feature.sync',
+        useDLQ: true,
+        dlqRoutingKey: 'dlq.feature.sync',
+      },
+    )();
   }
 
   @MessagePattern({ cmd: 'get:feature-role' })
@@ -84,8 +114,43 @@ export class FeatureController {
     description: 'Assign multiple features to multiple roles',
     fe: ['settings/role:add', 'settings/role:edit'],
   })
-  massAssignFeature(@Payload() data: any) {
+  async massAssignFeature(@Payload() data: any) {
     const body = data.body;
-    return this.service.massAssignFeature(body, data.params.user.id);
+    const response = await this.service.massAssignFeature(
+      body,
+      data.params.user.id,
+    );
+    if (response.success) {
+      RmqHelper.publishEvent('feature.mass-assign', {
+        body,
+        user_id: data.params.user.id,
+      });
+    }
+  }
+
+  @EventPattern('feature.mass-assign')
+  @Exempt()
+  async massAssignFeatureReplica(
+    @Payload() data: any,
+    @Ctx() context: RmqContext,
+  ) {
+    console.log('Captured Feature Mass Assign Event', data);
+    await RmqHelper.handleMessageProcessing(
+      context,
+      async () => {
+        const response = await this.service.massAssignFeature(
+          data.body,
+          data.user_id,
+        );
+        if (!response.success) {
+          throw new Error('Failed to assign feature');
+        }
+      },
+      {
+        queueName: 'feature.mass-assign',
+        useDLQ: true,
+        dlqRoutingKey: 'dlq.feature.mass-assign',
+      },
+    )();
   }
 }
