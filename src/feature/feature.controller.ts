@@ -142,7 +142,7 @@ export class FeatureController {
     await RmqHelper.handleMessageProcessing(
       context,
       async () => {
-        const response = await this.service.massAssignFeature(
+        const response = await this.service.massAssignFeatureReplica(
           data.data,
           data.user,
         );
