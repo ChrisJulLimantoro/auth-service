@@ -75,6 +75,32 @@ export class PageRepository extends BaseRepository<any> {
     return before;
   }
 
+  async assignPageToFeatureReplica(data: any) {
+    // check if exist or not
+    const exist = await this.prisma.pageFeature.findFirst({
+      where: { id: data['id'] },
+    });
+    if (!exist) {
+      const created = await this.prisma.pageFeature.create({
+        data,
+      });
+      return created;
+    }
+  }
+
+  async unassignPageToFeatureReplica(data: any) {
+    // check if exist or not
+    const exist = await this.prisma.pageFeature.findFirst({
+      where: { id: data['id'] },
+    });
+
+    if (exist) {
+      return this.prisma.pageFeature.delete({
+        where: { id: data.id },
+      });
+    }
+  }
+
   async assignPageToRole(pageId: string, roleId: string, user_id?: string) {
     const created = await this.prisma.pageRole.create({
       data: {

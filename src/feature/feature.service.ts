@@ -171,10 +171,7 @@ export class FeatureService extends BaseService {
             oldPage.feature_id == featurePage.feature_id,
         );
         if (!pageExist) {
-          await this.pageRepository.assignPageToFeature(
-            featurePage.page_id,
-            featurePage.feature_id,
-          );
+          await this.pageRepository.assignPageToFeatureReplica(featurePage);
         }
       }
       for (const oldPage of old['featurePages']) {
@@ -184,10 +181,7 @@ export class FeatureService extends BaseService {
             pattern.feature_id == oldPage.feature_id,
         );
         if (!pageExist) {
-          await this.pageRepository.unAssignPageToFeature(
-            oldPage.page_id,
-            oldPage.feature_id,
-          );
+          await this.pageRepository.unassignPageToFeatureReplica(oldPage);
         }
       }
 
@@ -307,16 +301,20 @@ export class FeatureService extends BaseService {
     try {
       // assign to page first
       for (const addPR of data['addPageRole']) {
+        console.log('added : ', addPR);
         await this.pageRepository.assignPageToRoleReplica(addPR, created_by);
       }
       for (const delPR of data['delPageRole']) {
+        console.log('deleted: ', delPR);
         await this.pageRepository.unassignPageToRoleReplica(delPR, created_by);
       }
       // assign to feature
       for (const addFR of data['addFeatureRole']) {
+        console.log('added feature role: ', addFR);
         await this.repository.assignFeatureToRoleReplica(addFR, created_by);
       }
       for (const delFR of data['delFeatureRole']) {
+        console.log('deleted feature role: ', delFR);
         await this.repository.unassignFeatureToRoleReplica(delFR, created_by);
       }
     } catch (error) {

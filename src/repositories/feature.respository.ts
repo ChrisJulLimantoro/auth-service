@@ -86,7 +86,7 @@ export class FeatureRepository extends BaseRepository<any> {
 
     if (!exist) {
       // log the action before create
-      await this.actionLog('feature_role', exist.id, 'CREATE', null, user_id);
+      await this.actionLog('feature_role', data.id, 'CREATE', null, user_id);
       return this.prisma.featureRole.create({
         data: data,
       });
