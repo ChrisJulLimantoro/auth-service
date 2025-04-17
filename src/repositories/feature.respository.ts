@@ -81,12 +81,12 @@ export class FeatureRepository extends BaseRepository<any> {
   async assignFeatureToRoleReplica(data: any, user_id?: string) {
     // check if exist or not
     const exist = await this.prisma.featureRole.findFirst({
-      where: { id: data.id },
+      where: { id: data['id'] },
     });
 
     if (!exist) {
       // log the action before create
-      await this.actionLog('feature_role', data.id, 'CREATE', null, user_id);
+      await this.actionLog('feature_role', exist.id, 'CREATE', null, user_id);
       return this.prisma.featureRole.create({
         data: data,
       });
@@ -96,7 +96,7 @@ export class FeatureRepository extends BaseRepository<any> {
   async unassignFeatureToRoleReplica(data: any, user_id?: string) {
     // check if exist or not
     const exist = await this.prisma.featureRole.findFirst({
-      where: { id: data.id },
+      where: { id: data['id'] },
     });
 
     if (exist) {
