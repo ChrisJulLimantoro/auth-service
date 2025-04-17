@@ -138,10 +138,9 @@ export class PageRepository extends BaseRepository<any> {
 
     if (exist) {
       // log the action before update
-      await this.actionLog('page_role', exist.id, 'UPDATE', null, user_id);
-      return this.prisma.pageRole.update({
+      await this.actionLog('page_role', exist.id, 'DELETE', null, user_id);
+      return this.prisma.pageRole.delete({
         where: { id: data.id },
-        data: data,
       });
     }
   }
