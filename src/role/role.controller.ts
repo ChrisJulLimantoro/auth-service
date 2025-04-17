@@ -43,9 +43,9 @@ export class RoleController {
         await this.service.createReplica(data);
       },
       {
-        queueName: 'role.deleted',
+        queueName: 'role.created',
         useDLQ: true,
-        dlqRoutingKey: 'dlq.role.deleted',
+        dlqRoutingKey: 'dlq.role.created',
         prisma: this.prisma,
       },
     )();
