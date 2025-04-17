@@ -54,7 +54,6 @@ export class PageRepository extends BaseRepository<any> {
         feature_id: featureId,
       },
     });
-    await this.actionLog('page_feature', created.id, 'CREATE', null, user_id);
     return created;
   }
 
@@ -73,11 +72,6 @@ export class PageRepository extends BaseRepository<any> {
         AND: [{ page_id: pageId }, { feature_id: featureId }],
       },
     });
-    await Promise.all(
-      before.map((item) =>
-        this.actionLog('page_feature', item.id, 'DELETE', item, user_id),
-      ),
-    );
     return deleted;
   }
 
@@ -98,16 +92,57 @@ export class PageRepository extends BaseRepository<any> {
         AND: [{ page_id: pageId }, { role_id: roleId }],
       },
     });
-    const deleted = await this.prisma.pageRole.deleteMany({
-      where: {
-        AND: [{ page_id: pageId }, { role_id: roleId }],
-      },
+    if (before.length > 0) {
+      await this.prisma.pageRole.deleteMany({
+        where: {
+          AND: [{ page_id: pageId }, { role_id: roleId }],
+        },
+      });
+
+      await Promise.all(
+        before.map((item) =>
+          this.actionLog('page_role', item.id, 'DELETE', item, user_id),
+        ),
+      );
+    }
+    return before;
+  }
+
+  async assignPageToRoleReplica(data: any, user_id?: string) {
+    // check if exist or not
+    const exist = await this.prisma.pageRole.findFirst({
+      where: { id: data.id },
     });
-    await Promise.all(
-      before.map((item) =>
-        this.actionLog('page_role', item.id, 'DELETE', item, user_id),
-      ),
-    );
-    return deleted;
+
+    if (exist) {
+      // log the action before update
+      await this.actionLog('page_role', exist.id, 'UPDATE', null, user_id);
+      return this.prisma.pageRole.update({
+        where: { id: data.id },
+        data: data,
+      });
+    } else {
+      // log the action before create
+      await this.actionLog('page_role', data.id, 'CREATE', null, user_id);
+      return this.prisma.pageRole.create({
+        data: data,
+      });
+    }
+  }
+
+  async unassignPageToRoleReplica(data: any, user_id?: string) {
+    // check if exist or not
+    const exist = await this.prisma.pageRole.findFirst({
+      where: { id: data.id },
+    });
+
+    if (exist) {
+      // log the action before update
+      await this.actionLog('page_role', exist.id, 'UPDATE', null, user_id);
+      return this.prisma.pageRole.update({
+        where: { id: data.id },
+        data: data,
+      });
+    }
   }
 }
