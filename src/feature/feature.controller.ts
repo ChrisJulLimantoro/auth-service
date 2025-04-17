@@ -12,12 +12,14 @@ import { FeatureService } from './feature.service';
 import { Describe } from 'src/decorator/describe.decorator';
 import { Exempt } from 'src/decorator/exempt.decorator';
 import { RmqHelper } from 'src/helper/rmq.helper';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Controller('feature')
 export class FeatureController {
   constructor(
     private readonly discovery: MessagePatternDiscoveryService,
     private readonly service: FeatureService,
+    private readonly prisma: PrismaService,
     @Inject('MASTER') private readonly masterClient: ClientProxy,
     @Inject('FINANCE') private readonly financeClient: ClientProxy,
     @Inject('INVENTORY') private readonly inventoryClient: ClientProxy,
@@ -87,6 +89,7 @@ export class FeatureController {
         queueName: 'feature.sync',
         useDLQ: true,
         dlqRoutingKey: 'dlq.feature.sync',
+        prisma: this.prisma,
       },
     )();
   }
@@ -122,7 +125,7 @@ export class FeatureController {
     );
     if (response.success) {
       RmqHelper.publishEvent('feature.mass-assign', {
-        body,
+        data: response.data,
         user: data.params.user.id,
       });
     }
@@ -140,7 +143,7 @@ export class FeatureController {
       context,
       async () => {
         const response = await this.service.massAssignFeature(
-          data.body,
+          data.data,
           data.user,
         );
         if (!response.success) {
@@ -151,6 +154,7 @@ export class FeatureController {
         queueName: 'feature.mass-assign',
         useDLQ: true,
         dlqRoutingKey: 'dlq.feature.mass-assign',
+        prisma: this.prisma,
       },
     )();
   }

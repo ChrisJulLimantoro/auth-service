@@ -224,42 +224,49 @@ export class FeatureService extends BaseService {
     const oldFeatureData = await this.repository.getByRole(role_id);
     // Assign to Page first
     const pages = oldPageData.map((page) => page.page_id);
-    var add = 0;
-    var del = 0;
+    var addPageRole = [];
+    var delPageRole = [];
     for (const page_id of page_ids) {
       // if the page is not assigned to the role, assign it
       if (!pages.includes(page_id)) {
-        await this.pageRepository.assignPageToRole(page_id, role_id, user_id);
+        const created = await this.pageRepository.assignPageToRole(
+          page_id,
+          role_id,
+          user_id,
+        );
         pages.push(page_id);
-        add++;
+        addPageRole.push(created);
       }
     }
     // Check to unassign page
     for (const page of oldPageData) {
       if (!page_ids.includes(page.page_id)) {
-        const delSuc = await this.pageRepository.unassignPageToRole(
+        const deleted = await this.pageRepository.unassignPageToRole(
           page.page_id,
           role_id,
           user_id,
         );
-        if (delSuc.count > 0) del++;
+        if (deleted) delPageRole.push(deleted);
       }
     }
 
     // Assign to Feature
     const features = oldFeatureData.map((feature) => feature.feature_id);
     var newFeatures = [];
+    var addFeatureRole = [];
+    var delFeatureRole = [];
     for (const page_id of page_ids) {
       const feats = await this.featureRepository.getAllToPage(page_id);
       for (const f of feats) {
         // Check if the feature is already assigned to the role
         if (!features.includes(f.feature_id)) {
-          await this.repository.assignFeatureToRole(
+          const created = await this.repository.assignFeatureToRole(
             role_id,
             f.feature_id,
             user_id,
           );
           features.push(f.feature_id);
+          addFeatureRole.push(created);
         }
         // add to newFeatures
         if (!newFeatures.includes(f.feature_id)) {
@@ -270,17 +277,56 @@ export class FeatureService extends BaseService {
     // Check to unassign feature
     for (const feature of oldFeatureData) {
       if (!newFeatures.includes(feature.feature_id)) {
-        await this.repository.unassignFeatureToRole(
+        const deleted = await this.repository.unassignFeatureToRole(
           role_id,
           feature.feature_id,
           user_id,
         );
+        if (deleted) delFeatureRole.push(deleted);
       }
     }
 
     return CustomResponse.success(
-      `Feature assigned to role, ${add} features assigned, ${del} featurs unassigned`,
-      null,
+      `Feature assigned to role, ${addPageRole.length} features assigned, ${delPageRole.length} featurs unassigned`,
+      {
+        addPageRole: addPageRole,
+        delPageRole: delPageRole,
+        addFeatureRole: addFeatureRole,
+        delFeatureRole: delFeatureRole,
+      },
+      200,
+    );
+  }
+
+  async massAssignFeatureReplica(data: any, created_by?: string) {
+    // Replicate the page role
+    try {
+      // assign to page first
+      for (const addPR of data['addPageRole']) {
+        await this.pageRepository.assignPageToRoleReplica(addPR, created_by);
+      }
+      for (const delPR of data['delPageRole']) {
+        await this.pageRepository.unassignPageToRoleReplica(delPR, created_by);
+      }
+      // assign to feature
+      for (const addFR of data['addFeatureRole']) {
+        await this.repository.assignFeatureToRoleReplica(addFR, created_by);
+      }
+      for (const delFR of data['delFeatureRole']) {
+        await this.repository.unassignFeatureToRoleReplica(delFR, created_by);
+      }
+    } catch (error) {
+      console.log(error);
+      return CustomResponse.error('Error Syncing Feature', error, 500);
+    }
+    return CustomResponse.success(
+      `Feature Role Synced`,
+      {
+        addPageRole: data['addPageRole'],
+        delPageRole: data['delPageRole'],
+        addFeatureRole: data['addFeatureRole'],
+        delFeatureRole: data['delFeatureRole'],
+      },
       200,
     );
   }
