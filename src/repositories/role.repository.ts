@@ -67,14 +67,7 @@ export class RoleRepository extends BaseRepository<any> {
       where: { id: data.id },
     });
 
-    if (exist) {
-      // log the action before update
-      await this.actionLog('user_role', exist.id, 'UPDATE', null, created_by);
-      return this.prisma.userRole.update({
-        where: { id: data.id },
-        data: data,
-      });
-    } else {
+    if (!exist) {
       // log the action before create
       await this.actionLog('user_role', data.id, 'CREATE', null, created_by);
       return this.prisma.userRole.create({
