@@ -246,7 +246,9 @@ export class FeatureService extends BaseService {
           role_id,
           user_id,
         );
-        if (deleted) delPageRole.push(deleted);
+        if (deleted) {
+          delPageRole = [...delPageRole, ...deleted];
+        }
       }
     }
 
@@ -282,7 +284,9 @@ export class FeatureService extends BaseService {
           feature.feature_id,
           user_id,
         );
-        if (deleted) delFeatureRole.push(deleted);
+        if (deleted) {
+          delFeatureRole = [...delFeatureRole, ...deleted];
+        }
       }
     }
 

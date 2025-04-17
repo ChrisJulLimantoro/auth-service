@@ -72,7 +72,7 @@ export class PageRepository extends BaseRepository<any> {
         AND: [{ page_id: pageId }, { feature_id: featureId }],
       },
     });
-    return deleted;
+    return before;
   }
 
   async assignPageToRole(pageId: string, roleId: string, user_id?: string) {
@@ -111,12 +111,12 @@ export class PageRepository extends BaseRepository<any> {
   async assignPageToRoleReplica(data: any, user_id?: string) {
     // check if exist or not
     const exist = await this.prisma.pageRole.findFirst({
-      where: { id: data.id },
+      where: { id: data['id'] },
     });
 
     if (!exist) {
       // log the action before create
-      await this.actionLog('page_role', data.id, 'CREATE', null, user_id);
+      await this.actionLog('page_role', data['id'], 'CREATE', null, user_id);
       return this.prisma.pageRole.create({
         data: data,
       });
@@ -126,12 +126,12 @@ export class PageRepository extends BaseRepository<any> {
   async unassignPageToRoleReplica(data: any, user_id?: string) {
     // check if exist or not
     const exist = await this.prisma.pageRole.findFirst({
-      where: { id: data.id },
+      where: { id: data['id'] },
     });
 
     if (exist) {
       // log the action before update
-      await this.actionLog('page_role', exist.id, 'DELETE', null, user_id);
+      await this.actionLog('page_role', exist['id'], 'DELETE', null, user_id);
       return this.prisma.pageRole.delete({
         where: { id: data.id },
       });
