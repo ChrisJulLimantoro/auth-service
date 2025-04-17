@@ -108,10 +108,9 @@ export class FeatureRepository extends BaseRepository<any> {
 
     if (exist) {
       // log the action before update
-      await this.actionLog('feature_role', exist.id, 'UPDATE', null, user_id);
-      return this.prisma.featureRole.update({
+      await this.actionLog('feature_role', exist.id, 'DELETE', null, user_id);
+      return this.prisma.featureRole.delete({
         where: { id: data.id },
-        data: data,
       });
     }
   }
