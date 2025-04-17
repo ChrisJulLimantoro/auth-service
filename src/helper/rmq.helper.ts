@@ -27,7 +27,7 @@ export class RmqHelper {
         : 1;
 
       // Check if the message received is from ownselfs
-      if (headers['origin-queue'] === this.QUEUE_NAME) {
+      if (headers['origin-queue'] == this.QUEUE_NAME) {
         console.log('Message already processed, skipping...');
         channel.ack(originalMsg);
         return;
@@ -67,6 +67,7 @@ export class RmqHelper {
           if (options.useDLQ && options.dlqRoutingKey) {
             channel.sendToQueue(options.dlqRoutingKey, originalMsg.content, {
               headers: {
+                ...headers,
                 'x-retry-count': retryCount,
                 originalRoutingKey: originalMsg.fields.routingKey,
               },
@@ -83,7 +84,7 @@ export class RmqHelper {
             retryCount,
           });
           channel.sendToQueue(this.QUEUE_NAME, originalMsg.content, {
-            headers: { 'x-retry-count': retryCount },
+            headers: { ...headers, 'x-retry-count': retryCount },
           });
 
           channel.ack(originalMsg);
