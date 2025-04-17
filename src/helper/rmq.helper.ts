@@ -35,6 +35,10 @@ export class RmqHelper {
 
       try {
         await callback();
+        console.log('Message processed successfully:', {
+          routingKey: originalMsg.fields.routingKey,
+          retryCount,
+        });
         channel.ack(originalMsg);
       } catch (error) {
         console.error('Error processing message:', error);
