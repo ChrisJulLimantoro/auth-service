@@ -40,13 +40,15 @@ export class StoreController {
         console.log('Store created emit received', data);
 
         const sanitizedData = {
-          ...data,
-          created_at: new Date(data.created_at),
-          updated_at: new Date(data.updated_at),
-          deleted_at: data.deleted_at ? new Date(data.deleted_at) : null,
+          ...data.data,
+          created_at: new Date(data.data.created_at),
+          updated_at: new Date(data.data.updated_at),
+          deleted_at: data.data.deleted_at
+            ? new Date(data.data.deleted_at)
+            : null,
         };
 
-        const response = await this.service.create(sanitizedData);
+        const response = await this.service.create(sanitizedData, data.user);
         if (!response.success) throw new Error('Store creation failed');
       },
       {
@@ -65,7 +67,7 @@ export class StoreController {
       context,
       async () => {
         console.log('Store deleted emit received', data);
-        const response = await this.service.delete(data);
+        const response = await this.service.delete(data.data, data.user);
         if (!response.success) throw new Error('Store deletion failed');
       },
       {
@@ -86,12 +88,16 @@ export class StoreController {
         console.log('Store Updated emit received', data);
 
         const sanitizedData = {
-          code: data.code,
-          name: data.name,
-          logo: data.logo,
+          code: data.data.code,
+          name: data.data.name,
+          logo: data.data.logo,
         };
 
-        const response = await this.service.update(data.id, sanitizedData);
+        const response = await this.service.update(
+          data.data.id,
+          sanitizedData,
+          data.user,
+        );
         if (!response.success) throw new Error('Store update failed');
       },
       {

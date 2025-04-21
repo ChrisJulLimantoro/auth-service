@@ -42,16 +42,19 @@ export class CompanyController {
   @Exempt()
   async companyCreated(@Payload() data: any, @Ctx() context: RmqContext) {
     const sanitizedData = {
-      ...data,
-      created_at: new Date(data.created_at),
-      updated_at: new Date(data.updated_at),
+      ...data.data,
+      created_at: new Date(data.data.created_at),
+      updated_at: new Date(data.data.updated_at),
       deleted_at: data.deleted_at ? new Date(data.deleted_at) : null,
     };
 
     await RmqHelper.handleMessageProcessing(
       context,
       async () => {
-        const response = await this.companyService.create(sanitizedData);
+        const response = await this.companyService.create(
+          sanitizedData,
+          data.user,
+        );
         if (!response.success) throw new Error('Company creation failed');
       },
       {
@@ -71,7 +74,7 @@ export class CompanyController {
     await RmqHelper.handleMessageProcessing(
       context,
       async () => {
-        const response = await this.companyService.delete(data);
+        const response = await this.companyService.delete(data.data, data.user);
         if (!response.success) throw new Error('Company deletion failed');
       },
       {
@@ -87,7 +90,7 @@ export class CompanyController {
   @Exempt()
   async companyUpdated(@Payload() data: any, @Ctx() context: RmqContext) {
     console.log('Company Updated emit received', data);
-    const sanitizedData = { code: data.code, name: data.name };
+    const sanitizedData = { code: data.data.code, name: data.data.name };
 
     await RmqHelper.handleMessageProcessing(
       context,
@@ -95,6 +98,7 @@ export class CompanyController {
         const response = await this.companyService.update(
           data.id,
           sanitizedData,
+          data.user,
         );
         if (!response.success) throw new Error('Company update failed');
       },
