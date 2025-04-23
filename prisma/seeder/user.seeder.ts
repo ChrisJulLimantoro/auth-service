@@ -5,6 +5,15 @@ const prisma = new PrismaClient();
 
 async function main() {
   // Create default companies
+  const data = await prisma.user.findFirst({
+    where: {
+      email: 'christian@gmail.com',
+    },
+  });
+  if (data) {
+    console.log('User already exists, skipping creation');
+    return;
+  }
   const user1 = await prisma.user.create({
     data: {
       email: 'christian@gmail.com',
