@@ -6,7 +6,7 @@ import { PrismaModule } from 'src/prisma/prisma.module';
 import { StoreRepository } from 'src/repositories/store.repository';
 
 @Module({
-  imports: [PrismaModule],
+  imports: [],
   providers: [AuthService, UserRepository, StoreRepository],
   controllers: [AuthController],
 })
