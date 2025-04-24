@@ -10,7 +10,10 @@ async function bootstrap() {
     AppModule,
     {
       transport: Transport.TCP,
-      options: { port: Number(process.env.TCP_PORT) || 3000 }, // Unique port for this TCP service
+      options: {
+        host: process.env.TCP_HOST || 'localhost',
+        port: Number(process.env.TCP_PORT) || 3000,
+      }, // Unique port for this TCP service
     },
   );
 
