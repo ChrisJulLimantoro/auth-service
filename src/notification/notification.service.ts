@@ -54,6 +54,7 @@ export class NotificationService {
         store.company.owner.email,
         ...usersWithAccess.map((u) => u.email),
       ];
+      console.log('Receipents ' + recipientEmails);
 
       if (recipientEmails.length === 0) {
         return { success: false };

@@ -43,6 +43,7 @@ async function bootstrap() {
     'feature.*',
     'page.*',
     'role.*',
+    'transaction.#',
   ];
   await RmqHelper.setupSubscriptionQueue(queueName, routingKeys);
   // Start all services
