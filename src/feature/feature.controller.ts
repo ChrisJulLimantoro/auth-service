@@ -29,6 +29,7 @@ export class FeatureController {
   @MessagePattern({ cmd: 'sync_feature' })
   @Exempt()
   async syncFeature() {
+    console.log('Syncing Feature');
     const patterns = [];
     // From Auth Services
     const authPatterns = await this.discovery.getMessagePatterns();
