@@ -29,6 +29,7 @@ COPY --from=builder /app/prisma ./prisma
 
 # Install only production dependencies
 RUN npm install --production
+RUN npm install --save-dev @types/bcrypt
 
 
 # Copy Prisma Client
