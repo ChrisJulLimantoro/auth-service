@@ -95,6 +95,9 @@ export class RPCExceptionFilter<T> implements ExceptionFilter {
       case 'P2025': // Record not found
         message = 'Record not found';
         break;
+      case 'P2023':
+        message = 'Duplicated record';
+        break;
       default:
         message = 'An unknown database error occurred';
         break;

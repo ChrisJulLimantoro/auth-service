@@ -52,7 +52,7 @@ model Role {
   updated_at DateTime @updatedAt
   deleted_at DateTime?
 
-  @@unique([name, company_id, store_id])
+  @@unique([name, company_id, store_id, deleted_at])
   @@map("roles")
   @@index([deleted_at]) // optimize for soft delete
   @@index([company_id, store_id]) // optimize for query

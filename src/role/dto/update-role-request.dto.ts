@@ -17,7 +17,7 @@ export class UpdateRoleRequest {
   static schema() {
     return z.object({
       name: z.string().min(3),
-      company_id: z.string().uuid(),
+      company_id: z.string().uuid().nullable().optional(),
       store_id: z.string().uuid().nullable().optional(),
     });
   }

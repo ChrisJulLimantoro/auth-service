@@ -107,6 +107,7 @@ export class AuthService {
     ) {
       return { authorize: true, owner_id: currUser.id };
     }
+    console.log('data', data);
 
     const companyId = data.auth.company_id ?? '';
     const storeId = data.auth.store_id ?? '';
