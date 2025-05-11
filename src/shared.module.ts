@@ -8,7 +8,7 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
         name: 'MASTER',
         transport: Transport.RMQ,
         options: {
-          urls: ['amqp://localhost:5672'],
+          urls: [process.env.RMQ_URL],
           queue: 'master_service_queue_1',
           queueOptions: {
             durable: true,
@@ -21,7 +21,7 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
         name: 'FINANCE',
         transport: Transport.RMQ,
         options: {
-          urls: ['amqp://localhost:5672'],
+          urls: [process.env.RMQ_URL],
           queue: 'finance_service_queue_1',
           queueOptions: {
             durable: true,
@@ -34,7 +34,7 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
         name: 'INVENTORY',
         transport: Transport.RMQ,
         options: {
-          urls: ['amqp://localhost:5672'],
+          urls: [process.env.RMQ_URL],
           queue: 'inventory_service_queue_1',
           queueOptions: {
             durable: true,
@@ -47,7 +47,7 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
         name: 'TRANSACTION',
         transport: Transport.RMQ,
         options: {
-          urls: ['amqp://localhost:5672'],
+          urls: [process.env.RMQ_URL],
           queue: 'transaction_service_queue_1',
           queueOptions: {
             durable: true,
