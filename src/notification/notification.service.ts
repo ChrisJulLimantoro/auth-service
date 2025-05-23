@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import * as nodemailer from 'nodemailer';
 import * as dotenv from 'dotenv';
+import { RpcException } from '@nestjs/microservices';
 
 dotenv.config();
 
@@ -13,7 +14,7 @@ export class NotificationService {
     try {
       const { store_id, transaction_code } = data;
       if (!store_id || !transaction_code) {
-        throw new Error(
+        throw new RpcException(
           'Missing required fields: store_id or transaction_code',
         );
       }
@@ -26,7 +27,7 @@ export class NotificationService {
       });
 
       if (!store) {
-        throw new Error(`Store with ID ${store_id} not found`);
+        throw new RpcException(`Store with ID ${store_id} not found`);
       }
 
       const usersWithAccess = await this.prisma.user.findMany({
@@ -76,7 +77,7 @@ export class NotificationService {
     try {
       const { store_id, transaction_code } = data;
       if (!store_id || !transaction_code) {
-        throw new Error(
+        throw new RpcException(
           'Missing required fields: store_id or transaction_code',
         );
       }
@@ -89,7 +90,7 @@ export class NotificationService {
       });
 
       if (!store) {
-        throw new Error(`Store with ID ${store_id} not found`);
+        throw new RpcException(`Store with ID ${store_id} not found`);
       }
 
       const usersWithAccess = await this.prisma.user.findMany({
@@ -138,7 +139,7 @@ export class NotificationService {
     try {
       const { store_id, transaction_code } = data;
       if (!store_id || !transaction_code) {
-        throw new Error(
+        throw new RpcException(
           'Missing required fields: store_id or transaction_code',
         );
       }
@@ -151,7 +152,7 @@ export class NotificationService {
       });
 
       if (!store) {
-        throw new Error(`Store with ID ${store_id} not found`);
+        throw new RpcException(`Store with ID ${store_id} not found`);
       }
 
       const usersWithAccess = await this.prisma.user.findMany({

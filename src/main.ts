@@ -9,7 +9,7 @@ dotenv.config();
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  app.useGlobalFilters(new RPCExceptionFilter());
+  // app.useGlobalFilters(new RPCExceptionFilter());
 
   // TCP Microservice
   const tcpOptions: MicroserviceOptions = {
@@ -20,6 +20,7 @@ async function bootstrap() {
     },
   };
   const tcpService = app.connectMicroservice(tcpOptions);
+  tcpService.useGlobalFilters(new RPCExceptionFilter());
 
   // RabbitMQ Microservice
   const queueName = process.env.RMQ_QUEUE_NAME || 'auth_service_queue_1';
@@ -33,6 +34,7 @@ async function bootstrap() {
     },
   };
   const rmqService = app.connectMicroservice(rmqOptions);
+  rmqService.useGlobalFilters(new RPCExceptionFilter());
 
   // Setup the topic exchange
   const routingKeys = [

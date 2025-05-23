@@ -6,6 +6,7 @@ import {
   MessagePattern,
   Payload,
   RmqContext,
+  RpcException,
 } from '@nestjs/microservices';
 import { MessagePatternDiscoveryService } from 'src/discovery/message-pattern-discovery.service';
 import { FeatureService } from './feature.service';
@@ -83,7 +84,7 @@ export class FeatureController {
       async () => {
         const response = await this.service.syncFeatureReplica(data);
         if (!response.success) {
-          throw new Error('Failed to sync feature');
+          throw new RpcException('Failed to sync feature');
         }
       },
       {
@@ -148,7 +149,7 @@ export class FeatureController {
           data.user,
         );
         if (!response.success) {
-          throw new Error('Failed to assign feature');
+          throw new RpcException('Failed to assign feature');
         }
       },
       {

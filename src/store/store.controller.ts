@@ -1,6 +1,12 @@
 import { Controller } from '@nestjs/common';
 import { StoreService } from './store.service';
-import { Ctx, EventPattern, Payload, RmqContext } from '@nestjs/microservices';
+import {
+  Ctx,
+  EventPattern,
+  Payload,
+  RmqContext,
+  RpcException,
+} from '@nestjs/microservices';
 import { Exempt } from 'src/decorator/exempt.decorator';
 import { RmqHelper } from '../helper/rmq.helper'; // Update path if needed
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -49,7 +55,7 @@ export class StoreController {
         };
 
         const response = await this.service.create(sanitizedData, data.user);
-        if (!response.success) throw new Error('Store creation failed');
+        if (!response.success) throw new RpcException('Store creation failed');
       },
       {
         queueName: 'store.created',
@@ -68,7 +74,7 @@ export class StoreController {
       async () => {
         console.log('Store deleted emit received', data);
         const response = await this.service.delete(data.data, data.user);
-        if (!response.success) throw new Error('Store deletion failed');
+        if (!response.success) throw new RpcException('Store deletion failed');
       },
       {
         queueName: 'store.deleted',
@@ -98,7 +104,7 @@ export class StoreController {
           sanitizedData,
           data.user,
         );
-        if (!response.success) throw new Error('Store update failed');
+        if (!response.success) throw new RpcException('Store update failed');
       },
       {
         queueName: 'store.updated',

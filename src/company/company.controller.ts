@@ -5,6 +5,7 @@ import {
   Ctx,
   RmqContext,
   MessagePattern,
+  RpcException,
 } from '@nestjs/microservices';
 import { CompanyService } from './company.service';
 import { Exempt } from 'src/decorator/exempt.decorator';
@@ -55,7 +56,8 @@ export class CompanyController {
           sanitizedData,
           data.user,
         );
-        if (!response.success) throw new Error('Company creation failed');
+        if (!response.success)
+          throw new RpcException('Company creation failed');
       },
       {
         queueName: 'company.created',
@@ -75,7 +77,8 @@ export class CompanyController {
       context,
       async () => {
         const response = await this.companyService.delete(data.data, data.user);
-        if (!response.success) throw new Error('Company deletion failed');
+        if (!response.success)
+          throw new RpcException('Company deletion failed');
       },
       {
         queueName: 'company.deleted',
@@ -100,7 +103,7 @@ export class CompanyController {
           sanitizedData,
           data.user,
         );
-        if (!response.success) throw new Error('Company update failed');
+        if (!response.success) throw new RpcException('Company update failed');
       },
       {
         queueName: 'company.updated',

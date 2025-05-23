@@ -8,6 +8,7 @@ import {
   MessagePattern,
   Payload,
   RmqContext,
+  RpcException,
 } from '@nestjs/microservices';
 import { CustomResponse } from 'src/exception/dto/custom-response.dto';
 import { Describe } from 'src/decorator/describe.decorator';
@@ -201,7 +202,7 @@ export class RoleController {
           data.user,
         );
         if (!response.success) {
-          throw new Error('Failed to assign role');
+          throw new RpcException('Failed to assign role');
         }
       },
       {
