@@ -20,10 +20,12 @@ model User {
   password String
   is_owner Boolean @default(false)
   owner_id String? @db.Uuid
+  is_verified Boolean @default(false)
 
   role_owned Role[]
   roles    UserRole[]
   companies Company[]
+  verification_tokens VerificationToken[]
 
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
@@ -32,6 +34,18 @@ model User {
   @@map("users")
   @@index([deleted_at]) // optimize for soft delete
   @@index([email]) // optimize for query
+}
+
+model VerificationToken {
+  id         Int      @id @default(autoincrement())
+  token      String   @unique
+  user_id    String   @db.Uuid
+  user       User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  expires_at DateTime
+  is_used    Boolean  @default(false)
+  created_at DateTime @default(now())
+
+  @@map("verification_tokens")
 }
 
 model Role {

@@ -5,6 +5,8 @@ import { CustomResponse } from 'src/exception/dto/custom-response.dto';
 import * as bcrypt from 'bcrypt';
 import { ValidationService } from 'src/validation/validation.service';
 import { StoreRepository } from 'src/repositories/store.repository';
+import { NotificationService } from 'src/notification/notification.service';
+import { RpcException } from '@nestjs/microservices';
 
 @Injectable()
 export class AuthService {
@@ -12,6 +14,7 @@ export class AuthService {
     private repository: UserRepository,
     private readonly validation: ValidationService,
     private readonly storeRepository: StoreRepository,
+    private readonly notificationService: NotificationService,
   ) {}
   async login(data: LoginRequest) {
     console.log('Login request received', data);
@@ -25,6 +28,20 @@ export class AuthService {
     if (!passwordMatch) {
       return CustomResponse.error('Invalid password', null, 400);
     }
+    // Check if unverified then will receive mail to verify the user
+    if (!user.is_verified) {
+      this.notificationService.sendVerificationEmail({
+        email: user.email,
+        userId: user.id,
+      });
+      // Sending Email Verification
+      return CustomResponse.success(
+        'Your email is unverified, We have sent you a verfication mail to the email listed',
+        { requiresVerification: true, id: user.id },
+        203,
+        true,
+      );
+    }
     // is Owner
     var companies = [];
     if (user.is_owner) {
@@ -32,7 +49,6 @@ export class AuthService {
     } else {
       const responses = await this.repository.getAuthorizedStore(user.id);
       for (const response of responses) {
-        console.log('hello');
         if (response.store) {
           const companyIndex = companies.findIndex(
             (item) => item.id === response.company.id,
@@ -204,5 +220,87 @@ export class AuthService {
       );
     }
     return CustomResponse.success('Authorized companies found', companies, 200);
+  }
+
+  async verifyEmail(token: string) {
+    const result = await this.notificationService.verifyEmailToken(token);
+
+    if (!result.success) {
+      throw new RpcException('Invalid or expired verification token');
+    }
+
+    // Find user
+    const user = await this.repository.findOne(result.userId);
+
+    // is Owner
+    var companies = [];
+    if (user.is_owner) {
+      companies = await this.repository.getOwnedCompany(user.id);
+    } else {
+      const responses = await this.repository.getAuthorizedStore(user.id);
+      for (const response of responses) {
+        console.log('hello');
+        if (response.store) {
+          const companyIndex = companies.findIndex(
+            (item) => item.id === response.company.id,
+          );
+          if (companyIndex < 0) {
+            const newCompany = {
+              ...response.company,
+              stores: [response.store],
+            };
+            companies.push(newCompany);
+            continue;
+          }
+          if (
+            companies[companyIndex].stores.find(
+              (store) => store.id === response.store.id,
+            )
+          ) {
+            continue;
+          }
+          companies[companyIndex].stores.push(response.store);
+        } else {
+          const stores = await this.storeRepository.findAll({
+            company_id: response.company.id,
+          });
+          const companyIndex = companies.findIndex(
+            (item) => item.id === response.company.id,
+          );
+          if (companyIndex >= 0) {
+            companies[companyIndex].stores = stores;
+          } else {
+            const newCompany = { ...response.company, stores: stores };
+            companies.push(newCompany);
+          }
+        }
+      }
+    }
+
+    const userData = {
+      id: user.id,
+      email: user.email,
+      company_id: companies[0]?.id ?? null,
+      store_id: companies[0]?.stores[0]?.id ?? null,
+      is_owner: user.is_owner,
+    };
+
+    return CustomResponse.success('Sucessfully Verified Email', userData);
+  }
+
+  async resendVerification(userId: string) {
+    const result =
+      await this.notificationService.resendVerificationEmail(userId);
+
+    if (result.success) {
+      return CustomResponse.success(
+        'Verification email successfully sent!, check your mail',
+        null,
+      );
+    } else {
+      throw new RpcException(
+        'Failed to send verification email or user already verified',
+      );
+    }
   }
 }

@@ -15,6 +15,18 @@ export class AuthController {
     return this.authService.login(data);
   }
 
+  @MessagePattern({ cmd: 'verify-email' })
+  @Exempt()
+  async verifyEmail(@Payload() data: any) {
+    return this.authService.verifyEmail(data.token);
+  }
+
+  @MessagePattern({ cmd: 'resend-verification' })
+  @Exempt()
+  async resendVerification(@Payload() data: any) {
+    return this.authService.resendVerification(data.user_id);
+  }
+
   @MessagePattern({ cmd: 'authorize' })
   @Exempt()
   async authorize(@Payload() data: string) {
