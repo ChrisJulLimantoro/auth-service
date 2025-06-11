@@ -6,6 +6,7 @@
 
 generator client {
   provider = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl"]
 }
 
 datasource db {
@@ -17,6 +18,204 @@ model User {
   id       String   @id @db.Uuid @default(uuid())
   email   String   @unique
   password String
+  is_owner Boolean @default(false)
+  owner_id String? @db.Uuid
+  is_verified Boolean @default(false)
+
+  role_owned Role[]
+  roles    UserRole[]
+  companies Company[]
+  verification_tokens VerificationToken[]
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  deleted_at DateTime?
 
   @@map("users")
+  @@index([deleted_at]) // optimize for soft delete
+  @@index([email]) // optimize for query
+}
+
+model VerificationToken {
+  id         Int      @id @default(autoincrement())
+  token      String   @unique
+  user_id    String   @db.Uuid
+  user       User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  expires_at DateTime
+  is_used    Boolean  @default(false)
+  created_at DateTime @default(now())
+
+  @@map("verification_tokens")
+}
+
+model Role {
+  id      String   @id @db.Uuid @default(uuid())
+  name     String
+  company_id String @db.Uuid
+  store_id String? @db.Uuid
+  owner_id String @db.Uuid
+
+  owner     User @relation(fields: [owner_id], references: [id])
+  users     UserRole[]
+  features  FeatureRole[]
+  company   Company @relation(fields: [company_id], references: [id])
+  store     Store? @relation(fields: [store_id], references: [id])
+  pages     PageRole[]
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  deleted_at DateTime?
+
+  @@unique([name, company_id, store_id, deleted_at])
+  @@map("roles")
+  @@index([deleted_at]) // optimize for soft delete
+  @@index([company_id, store_id]) // optimize for query
+}
+
+model UserRole {
+  id     String   @id @db.Uuid @default(uuid())
+  user_id String  @db.Uuid
+  role_id String  @db.Uuid
+
+  user   User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  role   Role     @relation(fields: [role_id], references: [id], onDelete: Cascade)
+
+
+  @@unique([user_id, role_id])
+  @@map("user_roles")
+  @@index([user_id])
+  @@index([role_id])
+}
+
+model Company {
+  id       String         @id @db.Uuid @default(uuid())
+  name     String
+  code     String
+  owner_id String @db.Uuid
+
+  roles    Role[]
+  stores Store[]
+  owner User @relation(fields: [owner_id], references: [id])
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  deleted_at DateTime?
+
+  @@map("companies")  
+  @@index([deleted_at]) // optimize for soft delete
+  @@index([owner_id]) // optimize for query
+
+}
+
+model Store {
+  id      String         @id @db.Uuid @default(uuid())
+  code    String
+  name    String
+  logo    String
+  company_id String @db.Uuid
+
+  roles    Role[]
+  company Company @relation(fields: [company_id], references: [id])
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  deleted_at DateTime?
+
+  @@map("stores")
+  @@index([deleted_at]) // optimize for soft delete
+  @@index([company_id]) // optimize for query
+}
+
+model Feature {
+  id     String   @id @db.Uuid @default(uuid())
+  name    String
+  description String
+  service String
+
+  roles   FeatureRole[]
+  pages   PageFeature[]
+
+  @@map("features")
+}
+
+model FeatureRole {
+  id         String   @id @db.Uuid @default(uuid())
+  feature_id String @db.Uuid
+  role_id    String @db.Uuid
+
+  feature    Feature  @relation(fields: [feature_id], references: [id], onDelete: Cascade)
+  role       Role     @relation(fields: [role_id], references: [id], onDelete: Cascade)
+
+
+  @@unique([feature_id, role_id])
+  @@map("feature_roles")
+  @@index([feature_id])
+  @@index([role_id])
+}
+
+model Page {
+  id      String   @id @db.Uuid @default(uuid())
+  path    String
+  action  String
+
+  roles   PageRole[]
+  features PageFeature[]
+
+  @@map("pages")
+  @@index([path]) // optimize for query
+}
+
+model PageRole {
+  id     String   @id @db.Uuid @default(uuid())
+  page_id String @db.Uuid
+  role_id String @db.Uuid
+
+  page Page @relation(fields: [page_id], references: [id], onDelete: Cascade)
+  role Role @relation(fields: [role_id], references: [id], onDelete: Cascade)
+
+  @@unique([page_id, role_id])
+  @@map("page_roles")
+  @@index([page_id])
+  @@index([role_id])
+}
+
+model PageFeature {
+  id         String   @id @db.Uuid @default(uuid())
+  page_id    String @db.Uuid
+  feature_id String @db.Uuid
+
+  page    Page    @relation(fields: [page_id], references: [id], onDelete: Cascade)
+  feature Feature @relation(fields: [feature_id], references: [id], onDelete: Cascade)
+
+  @@unique([page_id, feature_id])
+  @@map("page_features")
+  @@index([page_id])
+  @@index([feature_id])
+}
+
+// Model for storing failed RabbitMQ message
+model FailedMessage {
+  id         Int   @id @default(autoincrement())
+  queue      String
+  routingKey String
+  payload    Json
+  error      String
+  timestamp  DateTime @default(now())
+
+  @@map("failed_messages")
+}
+
+// Model for storing action logs
+model ActionLog {
+  id          BigInt  @id @default(autoincrement())
+  user_id     String?  @db.Uuid
+  event       String
+  resource    String
+  resource_id String
+  diff        Json?
+  timestamp   DateTime @default(now())
+
+  @@map("action_logs")
+  @@index([user_id])
+  @@index([resource, resource_id])
 }
