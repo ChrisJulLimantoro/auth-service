@@ -28,6 +28,19 @@ export class FeatureService extends BaseService {
     const oldDataFeature = await this.repository.findAll(); //excisting feature data
     const oldDataPage = await this.pageRepository.findAll(); //excisting page data
     // Creation of new features, pages, and assign pages to feature
+    console.log('Test ', data);
+    data.push({
+      name: 'get:marketplace/chat',
+      description: 'Marketplace chat',
+      pages: ['marketplace/chat:all'],
+      service: 'marketplace',
+    });
+    data.push({
+      name: 'get:marketplace/dashboard',
+      description: 'Marketplace dashbaord',
+      pages: ['marketplace/dashboard:all'],
+      service: 'marketplace',
+    });
     for (const pattern of data) {
       console.log(pattern);
       var featExist = oldDataFeature.find(
